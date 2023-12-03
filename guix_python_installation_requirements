@@ -98,7 +98,7 @@ echo -e "\nInstallation des requirements...\n"
     cut -d '=' -f 1 |
     # installation sous le PREFIX_PATH
     xargs -n 1 pip3 install --prefix="$PREFIX_PATH" && 
-    echo "Installation réussie"
+    echo -e "\nInstallation réussie\n"
 } ||   { STDERR_afficher_message "\nERREUR d'installation.\nVeuillez vérifier l'output.\n" &&
          exit 10
 }
