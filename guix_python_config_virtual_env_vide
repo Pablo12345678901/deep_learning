@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Ceci configure un environnement virtuel Python pour Guix
+# avec un path PREFIX_PATH dans lequel seront installés les packages pip
+# pour l'environnement en question
+
+# Obtient le path local de Python3
+PYTHONBIN="$(readlink -f `which python3`)"
+# Récupère le hash de ce path
+PYTHONHASH="$(basename $(dirname $(dirname $PYTHONBIN)))"
+
+# Calcul des valeurs des variables
+PYTHONVERSION="$(echo $PYTHONHASH | cut -d '-' -f 2- | tr -d '-' | cut -d '.' -f 1-2)"
+PREFIX_PATH="$HOME/.python_guix/$PYTHONHASH"
+PATH="$PREFIX_PATH/bin:$PATH"
+PYTHONPATH="$PREFIX_PATH/lib/${PYTHONVERSION}/site-packages:$PYTHONPATH"
+
+# Création d'un environnement vide
+# Nettoyage de l'environnement = suppression de tout
+echo -e "\nCréation d'un environnement / clean si existant..."
+PYTHONENVLOCALPATHINSTALLATIONPIP="${PREFIX_PATH}/lib/${PYTHONVERSION}/site-packages"
+{ rm -rf "$PYTHONENVLOCALPATHINSTALLATIONPIP"/*
+} ||
+    { STDERR_afficher_message "ECHEC lors de la création / clean. Veuillez le faire manuellement ou debugguer" &&
+	  exit 1
+      }
+
+# Affichage + consigne de set l'environnement
+echo -e "\nVeuillez configurer l'environnement virtuel en définissant les variables suivantes :\n"
+echo "PYTHONHASH=$PYTHONHASH; "
+echo "PYTHONVERSION=$PYTHONVERSION; "
+echo "PREFIX_PATH=$PREFIX_PATH; "
+echo "PYTHONPATH=$PYTHONPATH; "
+echo "PYTHONENVLOCALPATHINSTALLATIONPIP=$PYTHONENVLOCALPATHINSTALLATIONPIP; "
+echo "PATH=$PATH; "
+echo ""
+
+# Consigne d'utilisation
+COMMANDE_INSTALLATION_PACKAGE='pip3 install --prefix="$PREFIX_PATH" package_name'
+echo -e "Commande pour installer un package dans l'environnement virtuel :\n$COMMANDE_INSTALLATION_PACKAGE\n"
+echo -e "Et vos packages installés par pip seront situés :\n$PYTHONENVLOCALPATHINSTALLATIONPIP\ncf variables d'environnement \$PYTHONENVLOCALPATHINSTALLATIONPIP"
