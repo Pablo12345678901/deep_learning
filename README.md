@@ -7,3 +7,4 @@ The main repo contains :
 - "dev_et_tests" : a clone of the official book documentation in order to process tests and possibly crash without tempering the REAL official book documentation
 - "diverses_ressources_crees_par_moi" : my scripts (bash, python, ...)
 - "fichiers_pr_test" : files used for testing the scripts
+- "sound_anticipation" : a real AI project - read the README.md file inside to get a quick understanding of the target
