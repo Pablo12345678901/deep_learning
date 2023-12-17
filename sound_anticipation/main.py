@@ -4,7 +4,6 @@ import re # regex
 import requests # request to api
 import sys # to get env var
 
-
 def download_video_from_json(video_name, video_url, target_directory):
     print("Video name : " + video_name)
     print("Video url : " + video_url)
