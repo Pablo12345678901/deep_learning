@@ -19,9 +19,9 @@ notebook
 plyvel
 psycopg2-binary
 pyyaml
-sklearn
+#sklearn
 spotipy
 svglib
-tensorflow==1.14
+tensorflow #==1.14
 tqdm
 twitter
