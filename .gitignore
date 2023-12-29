@@ -1,2 +1,7 @@
-# Ignore all ressources files
-ressources/
+# Not tracking data ressources and virtual env
+#
+dev_and_tests_from_deep_learning_cookbook_examples/conda_venv/
+dev_and_tests_from_deep_learning_cookbook_examples/data/
+#
+sound_anticipation/lib/python3.11/site-packages/
+sound_anticipation/ressources/

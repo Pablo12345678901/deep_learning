@@ -1,0 +1,29 @@
+Pillow
+bs4
+emoji
+flickrapi
+gensim
+geopandas
+h5py
+imageio
+inflect
+internetarchive
+ipython
+jupyter
+keras
+librosa
+matplotlib
+mwparserfromhell
+nltk
+notebook
+nvidia-pyindex # for CUDA
+nvidia-cuda-runtime-cu12 # for CUDA
+plyvel
+psycopg2-binary
+pyyaml
+#sklearn
+spotipy
+svglib
+#tensorflow #==1.14 # installed through archlinux (pacman)
+tqdm
+twitter
