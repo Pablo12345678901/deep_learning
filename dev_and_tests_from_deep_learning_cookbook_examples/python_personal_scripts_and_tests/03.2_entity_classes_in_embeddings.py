@@ -9,6 +9,8 @@ import geopandas as gpd
 from IPython.core.pylabtools import figsize
 # figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
 import csv
+from operator import itemgetter # To sort dictionary
+
 
 MODEL = 'GoogleNews-vectors-negative300.bin'
 
@@ -38,7 +40,7 @@ print("\nLoading the word2vec model...")
 model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
 print("Finished to load the word2vec model !\n")
 
-def show_words_of_near_context_from_string(a_string):
+def show_words_of_near_context_from_string(model, a_string):
     # Get a list of tuples with two elements
     # the similar word and the computed value (number) for each
     similar_terms_list_of_tuple = model.most_similar(positive=[a_string])
@@ -49,22 +51,60 @@ def show_words_of_near_context_from_string(a_string):
     print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
     return None
 
-show_words_of_near_context_from_string("Germany")
+show_words_of_near_context_from_string(model, "Germany")
 # model.most_similar(positive=['Germany'])
-show_words_of_near_context_from_string("Annita_Kirsten")
+show_words_of_near_context_from_string(model, "Annita_Kirsten")
 #model.most_similar(positive=['Annita_Kirsten'])
 
 
+# csv.DictReader create a dict class object with the keys from a file
+# and then list() create a list object = list of dictionaries
+countries = list(csv.DictReader(open('data/countries.csv')))
 
+# Below : customs list of dict functions to print them in a pretty way
+def print_dictionary_elements(dictionary, index):
+    print(str(index))
+    for key, value in dictionary.items():
+        print(key + " : " + value)
+    print() # Esthetic
+
+def print_list_of_dictionaries(list_of_dictionaries):
+    for i in range(len(list_of_dictionaries)):
+        print_dictionary_elements(list_of_dictionaries[i], i)
+
+#print_list_of_dictionaries(countries)
+        
+def print_sorted_list_of_dictionaries_by_a_key_value(list_of_dictionaries, value):
+    newlist = sorted(list_of_dictionaries, key=itemgetter(value), reverse=False)
+    print("\nList of dictionaries sorted by the value of the key " + value)
+    for i in range(len(newlist)):
+        print_dictionary_elements(newlist[i], i)
+
+#print_sorted_list_of_dictionaries_by_a_key_value(countries, "name")
+
+# Show the first ten items of the dictionary (stocked wihtin a list range)
+# But as it is a dictionary, the order is linked to the hash and seems 'random'
+#print(countries[:10]) 
+
+def printing_list_elements(list):
+    list_lenght = len(list)
+    print("\nPrinting " + str(list_lenght) + " elements of the list :")
+    for i in range(list_lenght):
+        print(str(i) + " : " + list[i])
+    print() # Esthetic
+
+# random.sample returns a list of item from a list, tuple, string or set.
+# Return a list of 40 country names.
+positive = [x['name'] for x in random.sample(countries, 40)]
+#printing_list_elements(positive)
+
+# Getting 5000 random words from the model
+negative = random.sample(model.index_to_key, 5000)
+#printing_list_elements(negative)
+
+### I AM HERE ########################
 
 """
-
-countries = list(csv.DictReader(open('data/countries.csv')))
-countries[:10]
-
-positive = [x['name'] for x in random.sample(countries, 40)]
-negative = random.sample(model.vocab.keys(), 5000)
-negative[:4]
 
 labelled = [(p, 1) for p in positive] + [(n, 0) for n in negative]
 random.shuffle(labelled)
@@ -84,6 +124,8 @@ missed = [country for (pred, truth, country) in
 
 100 - 100 * float(len(missed)) / len(res), missed
 
+# BUG HERE : AttributeError: 'KeyedVectors' object has no attribute 'syn0'
+print("128 BUG HERE")
 all_predictions = clf.predict(model.syn0)
 
 res = []
