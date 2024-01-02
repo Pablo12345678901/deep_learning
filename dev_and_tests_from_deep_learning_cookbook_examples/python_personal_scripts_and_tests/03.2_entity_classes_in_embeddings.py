@@ -10,7 +10,62 @@ from IPython.core.pylabtools import figsize
 # figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
 import csv
 from operator import itemgetter # To sort dictionary
+import sys # for sys.exit(INT)
 
+def show_words_of_near_context_from_string(model, a_string):
+    # Get a list of tuples with two elements
+    # the similar word and the computed value (number) for each
+    similar_terms_list_of_tuple = model.most_similar(positive=[a_string])
+    # Get the first element of each tuple only (the word) into a list
+    similar_terms_list=[similar_terms_tuples[0] for similar_terms_tuples in similar_terms_list_of_tuple ]
+    # Join the list to a string
+    similar_terms_string = ', '.join(similar_terms_list) # return error expected a string but it is a 'tuple'
+    print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
+    return None
+
+def printing_list_elements(list):
+    list_lenght = len(list)
+    print("\nPrinting " + str(list_lenght) + " elements of the list :")
+    for i in range(list_lenght):
+        print(str(i) + " : " + list[i])
+    print() # Esthetic
+
+# Below : customs list of dict functions to print them in a pretty way
+def print_dictionary_elements(dictionary, index):
+    print(str(index))
+    for key, value in dictionary.items():
+        print(key + " : " + value)
+    print() # Esthetic
+
+def print_list_of_dictionaries(list_of_dictionaries):
+    for i in range(len(list_of_dictionaries)):
+        print_dictionary_elements(list_of_dictionaries[i], i)
+
+def print_sorted_list_of_dictionaries_by_a_key_value(list_of_dictionaries, value):
+    newlist = sorted(list_of_dictionaries, key=itemgetter(value), reverse=False)
+    print("\nList of dictionaries sorted by the value of the key " + value)
+    for i in range(len(newlist)):
+        print_dictionary_elements(newlist[i], i)
+
+def printing_tuple(tuple, index=0):
+    string_to_print = str(tuple[0])
+    if len(tuple)>1:
+        for i in range(1, len(tuple)):
+            string_to_print = string_to_print + ", " + str(tuple[i]) # in case there is number
+    string_to_print = str(index) + " - " + string_to_print
+    #print(str(index) + " - " + string_to_print)
+    print(string_to_print)
+    return string_to_print # 
+    #print() # Esthetic
+
+def printing_list_of_tuples(list_of_tuples):
+    for i in range(len(list_of_tuples)):
+        printing_tuple(list_of_tuples[i], i)
+    print() # Esthetic
+
+#####################################################
+#####################################################
+#####################################################
 
 MODEL = 'GoogleNews-vectors-negative300.bin'
 
@@ -40,58 +95,20 @@ print("\nLoading the word2vec model...")
 model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
 print("Finished to load the word2vec model !\n")
 
-def show_words_of_near_context_from_string(model, a_string):
-    # Get a list of tuples with two elements
-    # the similar word and the computed value (number) for each
-    similar_terms_list_of_tuple = model.most_similar(positive=[a_string])
-    # Get the first element of each tuple only (the word) into a list
-    similar_terms_list=[similar_terms_tuples[0] for similar_terms_tuples in similar_terms_list_of_tuple ]
-    # Join the list to a string
-    similar_terms_string = ', '.join(similar_terms_list) # return error expected a string but it is a 'tuple'
-    print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
-    return None
-
 show_words_of_near_context_from_string(model, "Germany")
 # model.most_similar(positive=['Germany'])
 show_words_of_near_context_from_string(model, "Annita_Kirsten")
 #model.most_similar(positive=['Annita_Kirsten'])
 
-
 # csv.DictReader create a dict class object with the keys from a file
 # and then list() create a list object = list of dictionaries
 countries = list(csv.DictReader(open('data/countries.csv')))
-
-# Below : customs list of dict functions to print them in a pretty way
-def print_dictionary_elements(dictionary, index):
-    print(str(index))
-    for key, value in dictionary.items():
-        print(key + " : " + value)
-    print() # Esthetic
-
-def print_list_of_dictionaries(list_of_dictionaries):
-    for i in range(len(list_of_dictionaries)):
-        print_dictionary_elements(list_of_dictionaries[i], i)
-
 #print_list_of_dictionaries(countries)
-        
-def print_sorted_list_of_dictionaries_by_a_key_value(list_of_dictionaries, value):
-    newlist = sorted(list_of_dictionaries, key=itemgetter(value), reverse=False)
-    print("\nList of dictionaries sorted by the value of the key " + value)
-    for i in range(len(newlist)):
-        print_dictionary_elements(newlist[i], i)
-
 #print_sorted_list_of_dictionaries_by_a_key_value(countries, "name")
 
 # Show the first ten items of the dictionary (stocked wihtin a list range)
 # But as it is a dictionary, the order is linked to the hash and seems 'random'
 #print(countries[:10]) 
-
-def printing_list_elements(list):
-    list_lenght = len(list)
-    print("\nPrinting " + str(list_lenght) + " elements of the list :")
-    for i in range(list_lenght):
-        print(str(i) + " : " + list[i])
-    print() # Esthetic
 
 # random.sample returns a list of item from a list, tuple, string or set.
 # Return a list of 40 country names.
@@ -102,16 +119,46 @@ positive = [x['name'] for x in random.sample(countries, 40)]
 negative = random.sample(model.index_to_key, 5000)
 #printing_list_elements(negative)
 
-### I AM HERE ########################
+# Creating tuples list in the format (country_name, 1)
+list_of_tuples_from_positive = [(p, 1) for p in positive]
+#printing_list_of_tuples(list_of_tuples_from_positive)
+#print("\n\n\n") # Esthetic
+# Creating tuples list in the format (random_word, 0)
+list_of_tuples_from_negative = [(n, 0) for n in negative]
+#printing_list_of_tuples(list_of_tuples_from_negative)
+#print("\n\n\n") # Esthetic
+
+# List concatenation
+labelled = list_of_tuples_from_positive + list_of_tuples_from_negative
+# labelled = [(p, 1) for p in positive] + [(n, 0) for n in negative]
+#printing_list_of_tuples(labelled)
+#print("\n\n\n") # Esthetic
+
+# Shuffling the list
+random.shuffle(labelled)
+
+# numpy.asarray converts input
+#
+# list, list of tuples,
+# tuples, tuples of tuples,
+# tuples of list and ndarray
+#
+# to an array (to an 'ndarray')
+# x = model[country_name] or [random_word]
+# so x = the vector of numbers from the model for each word
+#print([model[w] for w, l in labelled])
+X = np.asarray([model[w] for w, l in labelled])
+# y = 0 or 1
+y = np.asarray([l for w, l in labelled])
+
+# X.shape, y.shape = ndarray.shape
+# = a tuple which show dimensions of the array (X and y)
+print("Dimensions of ndarray X : " + printing_tuple(X.shape))
+print("Dimensions of ndarray y : " + printing_tuple(y.shape))
+
+#### I'M HERE ###########
 
 """
-
-labelled = [(p, 1) for p in positive] + [(n, 0) for n in negative]
-random.shuffle(labelled)
-X = np.asarray([model[w] for w, l in labelled])
-y = np.asarray([l for w, l in labelled])
-X.shape, y.shape
-
 TRAINING_FRACTION = 0.3
 cut_off = int(TRAINING_FRACTION * len(labelled))
 clf = svm.SVC(kernel='linear')
