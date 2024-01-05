@@ -156,20 +156,85 @@ y = np.asarray([l for w, l in labelled])
 print("Dimensions of ndarray X : " + printing_tuple(X.shape))
 print("Dimensions of ndarray y : " + printing_tuple(y.shape))
 
-#### I'M HERE ###########
-
-"""
+# Training fraction = percentage of the sample
 TRAINING_FRACTION = 0.3
+# Round to int the number of elements * the percentage
 cut_off = int(TRAINING_FRACTION * len(labelled))
-clf = svm.SVC(kernel='linear')
-clf.fit(X[:cut_off], y[:cut_off])
+# svm = sklearn.svm (scikit learn)
+# Wikipedia : "support vector machines are supervised learning models with associated learning algorithms that analyze data for classification and regression analysis"
+# Here it is precised the kernel type to be used in the algorithm
+# The kernel matrix : an array of shape (n_samples, n_samples)
 
+##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
+##### HOW IS SVC PROCESSED ?
+clf = svm.SVC(kernel='linear')
+
+
+# fit(X, y[, sample_weight]) : Fit the SVM model according to the given training data.
+# Returns: self object : Fitted estimator.
+# Here, using the first INT elements of X and y
+
+##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
+##### HOW IS IT PROCESSED ?
+clf.fit(X[:cut_off], y[:cut_off])
+# predict() : Perform classification on samples in X.
+# y_predndarray of shape (n_samples,) : Class labels for samples in X.
+# Here, try to predict the result for all elements after the INT first elements 
+
+##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
+##### HOW IS IT PROCESSED ?
 res = clf.predict(X[cut_off:])
 
+
+try:
+    print(res)
+    print("OK RES")
+except:
+    print("ERROR : RES")
+
+try:
+    print(y[cut_off:])
+    print("OK y[cut_off:]")
+except:
+    print("ERROR: y[cut_off:]")
+
+try:
+    print(labelled[cut_off:])
+    print("OK labelled[cut_off:]")
+except:
+    print("ERROR : labelled[cut_off:]")
+
+try:
+    print(zip(res, y[cut_off:], labelled[cut_off:]))
+    print("OK ZIP")
+except:
+    print("ERROR ZIP")
+
+
+#### I'M HERE ###########
+
+##### I'M TRYING TO UNDERSTAND WHAT REPRESENT WHAT ARE WHAT DOES THE FUNCTIONS APPLIED ABOVE DO
+    
+# Here :
+# zip will create tuples of :
+# res : the presumed result elements
+# the  y elements (the number 0 or 1)
+# and the labelled element = tuples consisting of the country/random word with a number (0 or 1)
+# and return the country missed (tuples with the country and the number)
+# only if the prediction (res) was different of the truth (y)
 missed = [country for (pred, truth, country) in 
  zip(res, y[cut_off:], labelled[cut_off:]) if pred != truth]
 
+try:
+    print(missed)
+    print("OK : missed")
+except:
+    print("ERROR : missed")
+
+"""
 100 - 100 * float(len(missed)) / len(res), missed
+
+
 
 # BUG HERE : AttributeError: 'KeyedVectors' object has no attribute 'syn0'
 print("128 BUG HERE")
