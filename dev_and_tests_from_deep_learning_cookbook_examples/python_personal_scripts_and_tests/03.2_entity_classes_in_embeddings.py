@@ -11,6 +11,7 @@ from IPython.core.pylabtools import figsize
 import csv
 from operator import itemgetter # To sort dictionary
 import sys # for sys.exit(INT)
+import time # for time.sleep(INT)
 
 def show_words_of_near_context_from_string(model, a_string):
     # Get a list of tuples with two elements
@@ -27,14 +28,14 @@ def printing_list_elements(list):
     list_lenght = len(list)
     print("\nPrinting " + str(list_lenght) + " elements of the list :")
     for i in range(list_lenght):
-        print(str(i) + " : " + list[i])
+        print("Index : " + str(i) + " / Value : " + str(list[i]))
     print() # Esthetic
 
 # Below : customs list of dict functions to print them in a pretty way
 def print_dictionary_elements(dictionary, index):
-    print(str(index))
+    print("Index of dictionary : " + str(index))
     for key, value in dictionary.items():
-        print(key + " : " + value)
+        print("Key : " + key + " / Value : " + str(value))
     print() # Esthetic
 
 def print_list_of_dictionaries(list_of_dictionaries):
@@ -52,10 +53,10 @@ def printing_tuple(tuple, index=0):
     if len(tuple)>1:
         for i in range(1, len(tuple)):
             string_to_print = string_to_print + ", " + str(tuple[i]) # in case there is number
-    string_to_print = str(index) + " - " + string_to_print
+    string_to_print = "Index : " + str(index) + " / Value : ( " + string_to_print + " ) "
     #print(str(index) + " - " + string_to_print)
     print(string_to_print)
-    return string_to_print # 
+    return string_to_print
     #print() # Esthetic
 
 def printing_list_of_tuples(list_of_tuples):
@@ -160,77 +161,50 @@ print("Dimensions of ndarray y : " + printing_tuple(y.shape))
 TRAINING_FRACTION = 0.3
 # Round to int the number of elements * the percentage
 cut_off = int(TRAINING_FRACTION * len(labelled))
+
 # svm = sklearn.svm (scikit learn)
 # Wikipedia : "support vector machines are supervised learning models with associated learning algorithms that analyze data for classification and regression analysis"
 # Here it is precised the kernel type to be used in the algorithm
 # The kernel matrix : an array of shape (n_samples, n_samples)
-
-##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
-##### HOW IS SVC PROCESSED ?
 clf = svm.SVC(kernel='linear')
-
+print("DEBUG : svm.SVC returns \"clf\"")
+print("DEBUG : How is the function processed ?")
+print("DEBUG : What kind of result does it produces ?")
+input("DEBUG : Enter to continue...")
 
 # fit(X, y[, sample_weight]) : Fit the SVM model according to the given training data.
 # Returns: self object : Fitted estimator.
 # Here, using the first INT elements of X and y
+clf.fit(X[:cut_off], y[:cut_off]) # SVC(kernel='linear')
 
-##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
-##### HOW IS IT PROCESSED ?
-clf.fit(X[:cut_off], y[:cut_off])
+print(clf.fit(X[:cut_off], y[:cut_off]))
+print("DEBUG : clf.fit")
+print("DEBUG : How is the function processed ?")
+print("DEBUG : What kind of result does it produces ?")
+input("DEBUG : Enter to continue...")
+
+# res : 3528 elements consisting of values 0 or 1
 # predict() : Perform classification on samples in X.
 # y_predndarray of shape (n_samples,) : Class labels for samples in X.
 # Here, try to predict the result for all elements after the INT first elements 
+res = clf.predict(X[cut_off:]) 
 
-##### WHAT KIND OF RESULT PRODUCE THIS FUNCTION #####
-##### HOW IS IT PROCESSED ?
-res = clf.predict(X[cut_off:])
+print("DEBUG : clf.predict")
+print("DEBUG : How is the function processed ?")
+print("DEBUG : What kind of result does it produces ?")
+input("DEBUG : Enter to continue...")
 
-
-try:
-    print(res)
-    print("OK RES")
-except:
-    print("ERROR : RES")
-
-try:
-    print(y[cut_off:])
-    print("OK y[cut_off:]")
-except:
-    print("ERROR: y[cut_off:]")
-
-try:
-    print(labelled[cut_off:])
-    print("OK labelled[cut_off:]")
-except:
-    print("ERROR : labelled[cut_off:]")
-
-try:
-    print(zip(res, y[cut_off:], labelled[cut_off:]))
-    print("OK ZIP")
-except:
-    print("ERROR ZIP")
-
-
-#### I'M HERE ###########
-
-##### I'M TRYING TO UNDERSTAND WHAT REPRESENT WHAT ARE WHAT DOES THE FUNCTIONS APPLIED ABOVE DO
-    
 # Here :
-# zip will create tuples of :
-# res : the presumed result elements
-# the  y elements (the number 0 or 1)
-# and the labelled element = tuples consisting of the country/random word with a number (0 or 1)
-# and return the country missed (tuples with the country and the number)
-# only if the prediction (res) was different of the truth (y)
+# zip will create tuples of (0/1, 0/1, (name, 0 / country,1)):
+# res : the presumed result elements (number 0 (if name) or 1(if country)) = 3528 elements consisting of values 0 or 1
+# the y elements (the real value : number 0 (if name) or 1(if country)) = 3528 elements consisting of values 0 or 1
+# labelled[cut_off:] : 3528 elements consisting of tuples with (noun, 0) or (country, 1)
+# Then, returns the country (tuple of (country,1))
+# only if the prediction (res : 0/1) was different of the truth (y : 0/1)
+# missed = list of tuples of format (country, 1)
 missed = [country for (pred, truth, country) in 
  zip(res, y[cut_off:], labelled[cut_off:]) if pred != truth]
-
-try:
-    print(missed)
-    print("OK : missed")
-except:
-    print("ERROR : missed")
-
+    
 """
 100 - 100 * float(len(missed)) / len(res), missed
 
