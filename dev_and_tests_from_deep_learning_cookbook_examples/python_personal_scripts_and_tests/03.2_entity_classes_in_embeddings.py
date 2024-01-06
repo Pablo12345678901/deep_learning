@@ -9,7 +9,7 @@ import geopandas as gpd
 from IPython.core.pylabtools import figsize
 # figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
 import csv
-from operator import itemgetter # To sort dictionary
+from operator import itemgetter # To sort dictionary by key value
 import sys # for sys.exit(INT)
 import time # for time.sleep(INT)
 
@@ -53,7 +53,7 @@ def printing_tuple(tuple, index=0):
     if len(tuple)>1:
         for i in range(1, len(tuple)):
             string_to_print = string_to_print + ", " + str(tuple[i]) # in case there is number
-    string_to_print = "Index : " + str(index) + " / Value : ( " + string_to_print + " ) "
+    string_to_print = "Index : " + str(index) + " / Value of tuple : ( " + string_to_print + " ) "
     #print(str(index) + " - " + string_to_print)
     print(string_to_print)
     return string_to_print
@@ -62,6 +62,15 @@ def printing_tuple(tuple, index=0):
 def printing_list_of_tuples(list_of_tuples):
     for i in range(len(list_of_tuples)):
         printing_tuple(list_of_tuples[i], i)
+    print() # Esthetic
+
+def printing_zip_elements(zip_object):
+    # Creating a copy of initial zip object
+    copy_of_zip_object = zip_object
+    # Converts to list in order to show
+    copy_of_zip_object = list(copy_of_zip_object)
+    for i in range(len(copy_of_zip_object)):
+        print("Index : " + str(i) + " / Value of zip element : " + str(copy_of_zip_object[i]))
     print() # Esthetic
 
 #####################################################
@@ -96,29 +105,20 @@ print("\nLoading the word2vec model...")
 model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
 print("Finished to load the word2vec model !\n")
 
+# Getting words of near context - see function above
 show_words_of_near_context_from_string(model, "Germany")
-# model.most_similar(positive=['Germany'])
 show_words_of_near_context_from_string(model, "Annita_Kirsten")
-#model.most_similar(positive=['Annita_Kirsten'])
 
 # csv.DictReader create a dict class object with the keys from a file
 # and then list() create a list object = list of dictionaries
 countries = list(csv.DictReader(open('data/countries.csv')))
-#print_list_of_dictionaries(countries)
-#print_sorted_list_of_dictionaries_by_a_key_value(countries, "name")
-
-# Show the first ten items of the dictionary (stocked wihtin a list range)
-# But as it is a dictionary, the order is linked to the hash and seems 'random'
-#print(countries[:10]) 
 
 # random.sample returns a list of item from a list, tuple, string or set.
-# Return a list of 40 country names.
+# Here : get a list of 40 countries names.
 positive = [x['name'] for x in random.sample(countries, 40)]
-#printing_list_elements(positive)
 
-# Getting 5000 random words from the model
+# Getting a list of 5000 random words from the model
 negative = random.sample(model.index_to_key, 5000)
-#printing_list_elements(negative)
 
 # Creating tuples list in the format (country_name, 1)
 list_of_tuples_from_positive = [(p, 1) for p in positive]
@@ -145,19 +145,17 @@ random.shuffle(labelled)
 # tuples of list and ndarray
 #
 # to an array (to an 'ndarray')
-# x = model[country_name] or [random_word]
-# so x = the vector of numbers from the model for each word
-#print([model[w] for w, l in labelled])
+# so X = a list of vector of numbers from the model for each word/country name = model[country_name] or [random_word]
 X = np.asarray([model[w] for w, l in labelled])
-# y = 0 or 1
+# y = a list of numbers (0 or 1)
 y = np.asarray([l for w, l in labelled])
 
 # X.shape, y.shape = ndarray.shape
 # = a tuple which show dimensions of the array (X and y)
-print("Dimensions of ndarray X : " + printing_tuple(X.shape))
-print("Dimensions of ndarray y : " + printing_tuple(y.shape))
+#print("Dimensions of ndarray X : " + printing_tuple(X.shape))
+#print("Dimensions of ndarray y : " + printing_tuple(y.shape))
 
-# Training fraction = percentage of the sample
+# Training fraction = a percentage of the sample
 TRAINING_FRACTION = 0.3
 # Round to int the number of elements * the percentage
 cut_off = int(TRAINING_FRACTION * len(labelled))
@@ -166,33 +164,30 @@ cut_off = int(TRAINING_FRACTION * len(labelled))
 # Wikipedia : "support vector machines are supervised learning models with associated learning algorithms that analyze data for classification and regression analysis"
 # Here it is precised the kernel type to be used in the algorithm
 # The kernel matrix : an array of shape (n_samples, n_samples)
+# svc takes two array as entries :
+#    an array of the training samples
+#    an array of class label (classification of the samples) = strings of INTs
+# Here : creation of the model
+# clf does not produce any printable result, it only creates a model with linear kernel (kind of model - there are other)
 clf = svm.SVC(kernel='linear')
-print("DEBUG : svm.SVC returns \"clf\"")
-print("DEBUG : How is the function processed ?")
-print("DEBUG : What kind of result does it produces ?")
-input("DEBUG : Enter to continue...")
 
 # fit(X, y[, sample_weight]) : Fit the SVM model according to the given training data.
 # Returns: self object : Fitted estimator.
 # Here, using the first INT elements of X and y
-clf.fit(X[:cut_off], y[:cut_off]) # SVC(kernel='linear')
-
-print(clf.fit(X[:cut_off], y[:cut_off]))
-print("DEBUG : clf.fit")
-print("DEBUG : How is the function processed ?")
-print("DEBUG : What kind of result does it produces ?")
-input("DEBUG : Enter to continue...")
+# Reminder :
+#    X is the vector of numbers for each word taken from the model
+#    y is a list of number 0 or 1
+# So the clf.fit takes the vector representing a word (=X) and fits it to 0 or 1 (=y)
+# And then after, it can makes prediction for other samples
+# clf.fit does not produce any printable results, it only fits the model to the class labels in order to make prediction afterwards
+clf.fit(X[:cut_off], y[:cut_off])
 
 # res : 3528 elements consisting of values 0 or 1
 # predict() : Perform classification on samples in X.
 # y_predndarray of shape (n_samples,) : Class labels for samples in X.
-# Here, try to predict the result for all elements after the INT first elements 
+# Here, try to predict the result for all elements after the INT first elements
+# So will predict the class label (=classification from above y (=number 0/1) from the word vector (X) and produce a list of labels (0/1)
 res = clf.predict(X[cut_off:]) 
-
-print("DEBUG : clf.predict")
-print("DEBUG : How is the function processed ?")
-print("DEBUG : What kind of result does it produces ?")
-input("DEBUG : Enter to continue...")
 
 # Here :
 # zip will create tuples of (0/1, 0/1, (name, 0 / country,1)):
@@ -204,12 +199,24 @@ input("DEBUG : Enter to continue...")
 # missed = list of tuples of format (country, 1)
 missed = [country for (pred, truth, country) in 
  zip(res, y[cut_off:], labelled[cut_off:]) if pred != truth]
-    
+
+# Compute the percentage of right answers
+percentage_of_failure = float(len(missed)) / len(res)
+percentage_of_right_answers_float = 100 - 100 * percentage_of_failure 
+# Format the float to max 4 digits, with max 2 decimals
+# ':' takes the argument provided to 'format' function
+pretty_percentage = "{:4.2f}".format(percentage_of_right_answers_float)
+# Showing the result (percentage + failure list)
+print("Percentage of right answers : " + pretty_percentage, "%", "\n", "List of tuples for which the model prediction was wrong : ", "\n", missed)
+
+
+
+
+
+
+
+input("DEBUG I AM HERE")
 """
-100 - 100 * float(len(missed)) / len(res), missed
-
-
-
 # BUG HERE : AttributeError: 'KeyedVectors' object has no attribute 'syn0'
 print("128 BUG HERE")
 all_predictions = clf.predict(model.syn0)
