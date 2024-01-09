@@ -9,9 +9,16 @@ import geopandas as gpd
 from IPython.core.pylabtools import figsize
 # figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
 import csv
+######################################################
+
+# My custom libraries
+import gzip # for unzipping the model file
+import shutil # for unzipping the model file
 from operator import itemgetter # To sort dictionary by key value
 import sys # for sys.exit(INT)
 import time # for time.sleep(INT)
+
+######################################################
 
 def show_words_of_near_context_from_string(model, a_string):
     # Get a list of tuples with two elements
@@ -74,7 +81,20 @@ def printing_zip_elements(zip_object):
     print() # Esthetic
 
 #####################################################
-#####################################################
+
+# Conserving the current dir before script was executed
+# For returning to it at the script end
+CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT = os.getcwd()
+# Changing dir to the script environment
+PATH_OF_SCRIPT = os.path.realpath(__file__)
+BASENAME_OF_SCRIPT = os.path.basename(PATH_OF_SCRIPT)
+DIR_OF_SCRIPT = os.path.dirname(PATH_OF_SCRIPT)
+# Changing dir to the script one
+os.chdir(DIR_OF_SCRIPT)
+# Getting one level up
+os.chdir('..')
+DIR_OF_PROJECT = os.getcwd()
+
 #####################################################
 
 MODEL = 'GoogleNews-vectors-negative300.bin'
@@ -83,7 +103,7 @@ MODEL = 'GoogleNews-vectors-negative300.bin'
 # And as the official one on the Google Drive can not be download with
 # GET request, only with POST request
 # and no idea of the parameters required... 
-path = "/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/data" + "/" + MODEL + ".gz"
+path = DIR_OF_PROJECT + "/data" + "/" + MODEL + ".gz"
 
 # Creating dir if not existing
 if not os.path.isdir('data'):
@@ -207,27 +227,44 @@ percentage_of_right_answers_float = 100 - 100 * percentage_of_failure
 # ':' takes the argument provided to 'format' function
 pretty_percentage = "{:4.2f}".format(percentage_of_right_answers_float)
 # Showing the result (percentage + failure list)
-print("Percentage of right answers : " + pretty_percentage, "%", "\n", "List of tuples for which the model prediction was wrong : ", "\n", missed)
+print("Percentage of right answers : " + pretty_percentage, "%", "\n", "List of tuples for which the model prediction was wrong : ", "\n", missed, "\n")
 
+# Warning about this step because it takes time
+# So show when it starts
+print("\nGet the prediction (classification labels) for all words (vector) in the model.\nWarning : can take time depending on CPU/GPU...\n")
+# Here : get the prediction (classification labels) for all words (vector) in the model
+# Reminder :
+# model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
+# model = KeyedVectors object
+# all_predictions = list of numbers (=labels) 0/1 (0 = word / 1 = country) 
+all_predictions = clf.predict(model.vectors) # similar to 'res' list above
+# And show when the above step ends
+print("\nThe prediction succesfully ended !\n")
 
+# Information great to know : how many words are there in the model ?
+print("\nThere are " + str(len(all_predictions)) + " words in the word2vec used.\n")
 
-
-
-
+# Getting a list of countries from the prediction model
+res = []
+# model.index_to_key = list of the model words [ word1, ..., wordn ]
+# all_predictions = list of numbers 0/1 (0 if word, 1 if country)
+for word, pred in zip(model.index_to_key, all_predictions):
+    # if pred = 0 > false / pred <> 0 = true
+    # so here, try to check if it is a country (if pred = 1)
+    if pred:
+        # If so, append it to the res list
+        res.append(word)
+        # And break if as soon as the res list contains 150 countries
+        if len(res) == 150:
+            break
+        
+# Showing N countries randomly from the country result list
+N = 10 # 0 <= N <= 150
+list_of_N_countries_predicted = random.sample(res, N)
+printing_list_elements(list_of_N_countries_predicted)
 
 input("DEBUG I AM HERE")
 """
-# BUG HERE : AttributeError: 'KeyedVectors' object has no attribute 'syn0'
-print("128 BUG HERE")
-all_predictions = clf.predict(model.syn0)
-
-res = []
-for word, pred in zip(model.index2word, all_predictions):
-    if pred:
-        res.append(word)
-        if len(res) == 150:
-            break
-random.sample(res, 10)
 
 country_to_idx = {country['name']: idx for idx, country in enumerate(countries)}
 country_vecs = np.asarray([model[c['name']] for c in countries])
@@ -265,3 +302,7 @@ map_term('China')
 map_term('vodka')
 
 """
+
+# Getting back to dir before execution of script
+os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
+print(f'DEBUG : END : PWD : {os.getcwd()}')
