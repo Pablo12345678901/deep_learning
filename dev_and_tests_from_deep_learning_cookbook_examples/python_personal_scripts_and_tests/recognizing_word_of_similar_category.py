@@ -12,6 +12,7 @@ import csv
 ######################################################
 
 # My custom libraries
+import personal_functions # see personal_functions.py of same dir = my personal functions list
 import gzip # for unzipping the model file
 import shutil # for unzipping the model file
 from operator import itemgetter # To sort dictionary by key value
@@ -31,54 +32,6 @@ def show_words_of_near_context_from_string(model, a_string):
     print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
     return None
 
-def printing_list_elements(list):
-    list_lenght = len(list)
-    print("\nPrinting " + str(list_lenght) + " elements of the list :")
-    for i in range(list_lenght):
-        print("Index : " + str(i) + " / Value : " + str(list[i]))
-    print() # Esthetic
-
-# Below : customs list of dict functions to print them in a pretty way
-def print_dictionary_elements(dictionary, index):
-    print("Index of dictionary : " + str(index))
-    for key, value in dictionary.items():
-        print("Key : " + key + " / Value : " + str(value))
-    print() # Esthetic
-
-def print_list_of_dictionaries(list_of_dictionaries):
-    for i in range(len(list_of_dictionaries)):
-        print_dictionary_elements(list_of_dictionaries[i], i)
-
-def print_sorted_list_of_dictionaries_by_a_key_value(list_of_dictionaries, value):
-    newlist = sorted(list_of_dictionaries, key=itemgetter(value), reverse=False)
-    print("\nList of dictionaries sorted by the value of the key " + value)
-    for i in range(len(newlist)):
-        print_dictionary_elements(newlist[i], i)
-
-def printing_tuple(tuple, index=0):
-    string_to_print = str(tuple[0])
-    if len(tuple)>1:
-        for i in range(1, len(tuple)):
-            string_to_print = string_to_print + ", " + str(tuple[i]) # in case there is number
-    string_to_print = "Index : " + str(index) + " / Value of tuple : ( " + string_to_print + " ) "
-    #print(str(index) + " - " + string_to_print)
-    print(string_to_print)
-    return string_to_print
-    #print() # Esthetic
-
-def printing_list_of_tuples(list_of_tuples):
-    for i in range(len(list_of_tuples)):
-        printing_tuple(list_of_tuples[i], i)
-    print() # Esthetic
-
-def printing_zip_elements(zip_object):
-    # Creating a copy of initial zip object
-    copy_of_zip_object = zip_object
-    # Converts to list in order to show
-    copy_of_zip_object = list(copy_of_zip_object)
-    for i in range(len(copy_of_zip_object)):
-        print("Index : " + str(i) + " / Value of zip element : " + str(copy_of_zip_object[i]))
-    print() # Esthetic
 
 #####################################################
 
@@ -142,17 +95,17 @@ negative = random.sample(model.index_to_key, 5000)
 
 # Creating tuples list in the format (country_name, 1)
 list_of_tuples_from_positive = [(p, 1) for p in positive]
-#printing_list_of_tuples(list_of_tuples_from_positive)
+#personal_functions.printing_list_of_tuples(list_of_tuples_from_positive)
 #print("\n\n\n") # Esthetic
 # Creating tuples list in the format (random_word, 0)
 list_of_tuples_from_negative = [(n, 0) for n in negative]
-#printing_list_of_tuples(list_of_tuples_from_negative)
+#personal_functions.printing_list_of_tuples(list_of_tuples_from_negative)
 #print("\n\n\n") # Esthetic
 
 # List concatenation
 labelled = list_of_tuples_from_positive + list_of_tuples_from_negative
 # labelled = [(p, 1) for p in positive] + [(n, 0) for n in negative]
-#printing_list_of_tuples(labelled)
+#personal_functions.printing_list_of_tuples(labelled)
 #print("\n\n\n") # Esthetic
 
 # Shuffling the list
@@ -261,20 +214,50 @@ for word, pred in zip(model.index_to_key, all_predictions):
 # Showing N countries randomly from the country result list
 N = 10 # 0 <= N <= 150
 list_of_N_countries_predicted = random.sample(res, N)
-printing_list_elements(list_of_N_countries_predicted)
+personal_functions.printing_list_elements(list_of_N_countries_predicted)
 
-input("DEBUG I AM HERE")
-"""
-
+# Reminder : countries = list(csv.DictReader(open('data/countries.csv')))
+# = the list of dictionaries for all countries
+# with each element in the format {name:value, cc:value, cc3:value }
+# enumerate returns an iterator with index and element pairs from the original iterable
+# By default, start index = 0
+# So here, returns a new dictionary with the country name (key) and corresponding index (value) : { "Canada" : 0, ..., "Comoros" : 183 }
 country_to_idx = {country['name']: idx for idx, country in enumerate(countries)}
+
+# cnp.asarray : Convert the input to an array > returns an ndarray (country_vecs)
+# 'c' represent each dictionary (one dict per country) in the format {name:value, cc:value, cc3:value }
+# country_vecs get the vectors for each country name for the csv file
+# by getting it from the model from the key value 'name' of country dict
 country_vecs = np.asarray([model[c['name']] for c in countries])
-country_vecs.shape
+
+# Showing the dimensions of the new array of countries vectors from the model
+print("\nThe new array of countries vectors from the model has dimensions :")
+personal_functions.printing_tuple(country_vecs.shape) # dimensions : ( 184, 300 ) = 184 countries and a vector of 300 numbers with each
+print() # Esthetic
+
+# np.dot : dot product or scalar product is an algebraic operation that takes two equal-length sequences of numbers, and returns a single number.
+# country_to_idx['Canada'] : the index returned from countries
+# country_vecs[country_to_idx['Canada']] : the vector of the same index - therefore, the vector for 'Canada'
+# So here : scalar product of all countries vector and the Canada vector
+
+print("\n\nDEBUG")
+print("1. Show what is : country_vecs[country_to_idx['Canada']]")
+print("2. Compare from the value of model['Canada'] to check that it is the same")
+print("3. Check why to use the '.dot' to compute a scalar vector")
+print("4. How is it done (mathematics) ?")
+print("5. What does the np.argsort() function ?")
+print("6. How is the np.argsort() processed ?")
+print("7. What does the reversed function and what is the return value ?")
+input("\nDEBUG DO THE ABOVE")
 
 dists = np.dot(country_vecs, country_vecs[country_to_idx['Canada']])
 for idx in reversed(np.argsort(dists)[-10:]):
     print(countries[idx]['name'], dists[idx])
 
-def rank_countries(term, topn=10, field='name'):
+input("DEBUG I AM HERE")
+"""
+    
+def rank_countries(model, term, topn=10, field='name'):
     if not term in model:
         return []
     vec = model[term]
@@ -282,13 +265,15 @@ def rank_countries(term, topn=10, field='name'):
     return [(countries[idx][field], float(dists[idx])) 
             for idx in reversed(np.argsort(dists)[-topn:])]
 
-rank_countries('cricket')
+input("DEBUG MOVE THE ABOVE FUNCTION AT THE TOP OF SCRIPT WHEN UNDERSTOOD")
+
+rank_countries(model, 'cricket')
 
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 world.head()
 
 def map_term(term):
-    d = {k.upper(): v for k, v in rank_countries(term, topn=0, field='cc3')}
+    d = {k.upper(): v for k, v in rank_countries(model, term, topn=0, field='cc3')}
     world[term] = world['iso_a3'].map(d)
     world[term] /= world[term].max()
     world.dropna().plot(term, cmap='OrRd')
@@ -303,6 +288,9 @@ map_term('vodka')
 
 """
 
+input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
+
 # Getting back to dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
 print(f'DEBUG : END : PWD : {os.getcwd()}')
+
