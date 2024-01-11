@@ -32,7 +32,6 @@ def show_words_of_near_context_from_string(model, a_string):
     print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
     return None
 
-
 #####################################################
 
 # Conserving the current dir before script was executed
@@ -236,24 +235,32 @@ personal_functions.printing_tuple(country_vecs.shape) # dimensions : ( 184, 300 
 print() # Esthetic
 
 # np.dot : dot product or scalar product is an algebraic operation that takes two equal-length sequences of numbers, and returns a single number.
+# Theory : https://en.wikipedia.org/wiki/Dot_product
+# And in context of AI : https://stats.stackexchange.com/questions/291680/can-any-one-explain-why-dot-product-is-used-in-neural-network-and-what-is-the-in
+# To summarize : use dot product to check if two vectors are aligned or not and for how much. The bigger result in a list of results of dot product between a vector and another list of vector will be the more aligned vector. Which means that they are the more similar : same size and direction (angle) in a Z dimensions space.
+# a = [ 1, 3, -5 ]
+# b = [ 4, -2, -1 ]
+# a DOT b = (1 * 4) + ( 3 * -2) + (-5 * -1)
+# = 4 -6 + 5 = 3
+# = a * transposed_matrix(b)
 # country_to_idx['Canada'] : the index returned from countries
-# country_vecs[country_to_idx['Canada']] : the vector of the same index - therefore, the vector for 'Canada'
-# So here : scalar product of all countries vector and the Canada vector
+# country_vecs[country_to_idx['Canada']] : the vector of the same index - therefore, the vector for 'Canada', equivalent to the vector returned by : model['Canada']
+# So here : dists = scalar product of all countries vectors and the Canada vector = to see how near they are.
+dists = np.dot(country_vecs, country_vecs[country_to_idx['Canada']]) # returns : [ [ 7.544024 ... 1.7089474 ] = list of scalar products of each country with Canada
 
-print("\n\nDEBUG")
-print("1. Show what is : country_vecs[country_to_idx['Canada']]")
-print("2. Compare from the value of model['Canada'] to check that it is the same")
-print("3. Check why to use the '.dot' to compute a scalar vector")
-print("4. How is it done (mathematics) ?")
-print("5. What does the np.argsort() function ?")
-print("6. How is the np.argsort() processed ?")
-print("7. What does the reversed function and what is the return value ?")
-input("\nDEBUG DO THE ABOVE")
-
-dists = np.dot(country_vecs, country_vecs[country_to_idx['Canada']])
+# Printing the 10 countries having the more in common with 'Canada' according to the model
+print("\nPrinting 10 countries which vectors are the closest to the Canada one according to the word2vec model.\n\nSo they should have more in common (culture, nature, ...)  than compared to other countries.\n")
+# np.argsort : Returns an ndarray containing the indices of an array that would be sorted (from the lowest value = 0 to the biggest = index max) along an axis (by default = -1 = the latest axis)
+# [-10:] = the last 10 elements of the list = the 10 biggest value for scalar vector = (ex:) [ 23  37  41  17 125 100 134  27 162   0]
+# reversed() : Return a reverse iterator : An object representing a stream of data. Repeated calls to the iterator’s __next__() method (or passing it to the built-in function next()) return successive items in the stream. When no more data are available a StopIteration exception is raised instead.
+# So here : idx gets the index of the 10 last sorted elements of the list 'dists' containing the scalar product (of each country and 'Canada' for each one) and take them from the last one (the biggest number) to the first one (the 10th bigger number) element of the dists list.
 for idx in reversed(np.argsort(dists)[-10:]):
-    print(countries[idx]['name'], dists[idx])
+    print("Country : " + countries[idx]['name'], " / Dot product : ", dists[idx])
 
+
+
+
+    
 input("DEBUG I AM HERE")
 """
     
@@ -292,5 +299,4 @@ input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING"
 
 # Getting back to dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
-print(f'DEBUG : END : PWD : {os.getcwd()}')
 
