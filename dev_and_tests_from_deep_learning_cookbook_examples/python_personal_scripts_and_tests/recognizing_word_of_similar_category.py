@@ -32,6 +32,26 @@ def show_words_of_near_context_from_string(model, a_string):
     print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
     return None
 
+def rank_countries(model, term, country_vecs, countries, topn=10, field='name'):
+    # Above argument 'country_vecs' = the vectors from the country names (in turn from the CSV)
+    # If the word is not in the model, return an empty list
+    if not term in model:
+        print("\nERROR : the term \"" + str(term) + "\" is not in the model.\n")
+        return []
+    # Get the word vector from the model
+    vec = model[term]
+    # dot product between the country_vecs and the vec from the model based on the word
+    dists = np.dot(country_vecs, vec)
+    # Get the 'topn' countries the closest to the 'term' passed to the function by sorting their vectors (=np.argsort) from the smallest to the biggest, then taking only the last 'topn' elements (the 'topn' bigger vectors), then reversed their order (function 'reversed') to get the closest country first (= their indexes : idx)...
+    # and lastly creating a tuple containing :
+    #    - the countries key ('field') value (default to 'name') from the list of dictionary 'countries'
+    #    - the dot product for this country
+    LIST_OF_TUPLES_RESULTS = [(countries[idx][field], float(dists[idx]))
+                      for idx in reversed(np.argsort(dists)[-topn:])]
+    print("\nThe " + str(topn) + " country/ies of context the closest to the term \"" + str(term) + "\" are :\n")
+    personal_functions.printing_list_of_tuples(LIST_OF_TUPLES_RESULTS)
+    return LIST_OF_TUPLES_RESULTS
+
 #####################################################
 
 # Conserving the current dir before script was executed
@@ -256,36 +276,30 @@ print("\nPrinting 10 countries which vectors are the closest to the Canada one a
 # So here : idx gets the index of the 10 last sorted elements of the list 'dists' containing the scalar product (of each country and 'Canada' for each one) and take them from the last one (the biggest number) to the first one (the 10th bigger number) element of the dists list.
 for idx in reversed(np.argsort(dists)[-10:]):
     print("Country : " + countries[idx]['name'], " / Dot product : ", dists[idx])
+print() # Esthetic
 
+# Show the 10 countries the nearest to the 'cricket' word
+rank_countries(model, 'cricket', country_vecs, countries)
 
+print("1. How to compare vectors with dot products ?")
+print("2. What are the max (hypothesis : 1) and min (hypothesis : -1) of each 300 elements for the countries vector ?")
+print("3. How the model build one of those 300 elements ?")
+input("Process the above points before continuing.")
 
-
-    
 input("DEBUG I AM HERE")
+
 """
-    
-def rank_countries(model, term, topn=10, field='name'):
-    if not term in model:
-        return []
-    vec = model[term]
-    dists = np.dot(country_vecs, vec)
-    return [(countries[idx][field], float(dists[idx])) 
-            for idx in reversed(np.argsort(dists)[-topn:])]
-
-input("DEBUG MOVE THE ABOVE FUNCTION AT THE TOP OF SCRIPT WHEN UNDERSTOOD")
-
-rank_countries(model, 'cricket')
-
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 world.head()
 
 def map_term(term):
-    d = {k.upper(): v for k, v in rank_countries(model, term, topn=0, field='cc3')}
+    d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs,countries, topn=0, field='cc3')}
     world[term] = world['iso_a3'].map(d)
     world[term] /= world[term].max()
     world.dropna().plot(term, cmap='OrRd')
 
 map_term('coffee')
+
 
 map_term('cricket')
 
