@@ -52,6 +52,49 @@ def rank_countries(model, term, country_vecs, countries, topn=10, field='name'):
     personal_functions.printing_list_of_tuples(LIST_OF_TUPLES_RESULTS)
     return LIST_OF_TUPLES_RESULTS
 
+def show_range_of_vector_element_for_each_country_and_for_all_of_them(countries, model):
+    # Reminder about 'countries' element :
+    # countries = list(csv.DictReader(open('data/countries.csv')))
+    # csv.DictReader create a dict class object with the keys from a file
+    # and then list() create a list object = list of dictionaries
+    country_list = [ c['name'] for c in countries ]
+    # Show country list
+    personal_functions.printing_list_elements(country_list)
+    # Declare the general max and min outside of the loop because needed after it
+    general_min = 0.
+    general_max = 0.
+    # Getting the min and max values from each country vector + printing it 
+    for i in range(len(country_list)):
+        # Printing the country name
+        print(str(i) + " - country name : " + str(country_list[i]))
+        # Getting the country vector from the model
+        country_vector = [model[country_list[i]]] # [array([ 0... , ... , -0... ], dtype=float32)]
+        country_vector_clean = country_vector[0] # [ 0... , ... , -0... ]
+        # Setting an initial value for the max and min value of the country vector
+        max_from_vector = country_vector_clean[0]
+        min_from_vector = country_vector_clean[0]
+        # Setting a value to the general min and max - only the first time
+        if i == 0:
+            general_max = max_from_vector
+            general_min = min_from_vector
+        # Check if current value is above max or below min and update max and min values
+        for index in range(len(country_vector_clean)):
+            if country_vector_clean[index] > max_from_vector:
+                max_from_vector = country_vector_clean[index]
+            if country_vector_clean[index] < min_from_vector:
+                min_from_vector = country_vector_clean[index]
+        # Print the results for each country
+        print("Range from min " + str(min_from_vector) + " to max " + str(max_from_vector) + ".")
+        # Update the general min and max values depending on the current country values
+        if max_from_vector > general_max:
+            general_max = max_from_vector
+        if  min_from_vector < general_min:
+            general_min = min_from_vector
+    # Printing the general max & min values
+    print("\nAll the values are between min : " + str(general_min) + " and max : " + str(general_max) + ".\n")
+    # No value returned - only for showing
+    return None
+
 #####################################################
 
 # Conserving the current dir before script was executed
@@ -104,6 +147,10 @@ show_words_of_near_context_from_string(model, "Annita_Kirsten")
 # csv.DictReader create a dict class object with the keys from a file
 # and then list() create a list object = list of dictionaries
 countries = list(csv.DictReader(open('data/countries.csv')))
+
+# Showing ranges of vectors values for each country
+# just for showing that they are included in range [ -1, 1]
+show_range_of_vector_element_for_each_country_and_for_all_of_them(countries, model)
 
 # random.sample returns a list of item from a list, tuple, string or set.
 # Here : get a list of 40 countries names.
@@ -281,14 +328,12 @@ print() # Esthetic
 # Show the 10 countries the nearest to the 'cricket' word
 rank_countries(model, 'cricket', country_vecs, countries)
 
-print("1. How to compare vectors with dot products ?")
-print("2. What are the max (hypothesis : 1) and min (hypothesis : -1) of each 300 elements for the countries vector ?")
-print("3. How the model build one of those 300 elements ?")
-input("Process the above points before continuing.")
+
+
 
 input("DEBUG I AM HERE")
-
 """
+
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 world.head()
 
@@ -300,17 +345,20 @@ def map_term(term):
 
 map_term('coffee')
 
-
 map_term('cricket')
 
 map_term('China')
 
 map_term('vodka')
 
+
+
+# TO DO
+input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
+input("\n\nTo do to better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb \n\n")
+
 """
 
-input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
-
-# Getting back to dir before execution of script
+# Getting back to the dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
 
