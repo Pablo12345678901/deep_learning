@@ -33,6 +33,9 @@ def show_words_of_near_context_from_string(model, a_string):
     return None
 
 def rank_countries(model, term, country_vecs, countries, topn=10, field='name'):
+    """
+    Returns a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
+    """
     # Above argument 'country_vecs' = the vectors from the country names (in turn from the CSV)
     # If the word is not in the model, return an empty list
     if not term in model:
@@ -328,31 +331,69 @@ print() # Esthetic
 # Show the 10 countries the nearest to the 'cricket' word
 rank_countries(model, 'cricket', country_vecs, countries)
 
+# gpd = geopandas
+# gpd.datasets.get_path : Get the path to the data file from the geopandas library.
+# '.../python*.*/site-packages/geopandas/datasets/naturalearth_lowres/naturalearth_lowres.shp'
+PATH_OF_WORLD_MAP = gpd.datasets.get_path('naturalearth_lowres')
+# gpd.read_file : Returns a GeoDataFrame from a file or URL.
+# So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
+# GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
+# Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
+world = gpd.read_file(PATH_OF_WORLD_MAP)
 
-
-
-input("DEBUG I AM HERE")
 """
+/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/python_personal_scripts_and_tests/recognizing_word_of_similar_category.py:334: FutureWarning: The geopandas.dataset module is deprecated and will be removed in GeoPandas 1.0. You can get the original 'naturalearth_lowres' data from https://www.naturalearthdata.com/downloads/110m-cultural-vectors/.
+"""
+input("Above warning to be treated after by testing with several files from the website")
 
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-world.head()
+# head([n]) : Return the first n rows.
+"""
+# Example of output returned by world.head() :
+       pop_est  ...                                           geometry
+0     889953.0  ...  MULTIPOLYGON (((180.00000 -16.06713, 180.00000...
+1   58005463.0  ...  POLYGON ((33.90371 -0.95000, 34.07262 -1.05982...
+2     603253.0  ...  POLYGON ((-8.66559 27.65643, -8.66512 27.58948...
+3   37589262.0  ...  MULTIPOLYGON (((-122.84000 49.00000, -122.9742...
+4  328239523.0  ...  MULTIPOLYGON (((-122.84000 49.00000, -120.0000...
 
-def map_term(term):
-    d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs,countries, topn=0, field='cc3')}
+[5 rows x 6 columns]
+
+"""
+print(world.head())
+
+def map_term(model, term, country_vecs, countries, world):
+    # rank_countries : return a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
+    # Therefore :
+    #    k = the key value (cc3 field = abbreviation of the country name)
+    #    v = the dot product of this country with the term
+    # So here, create a dictionary of UPPER CHAR cc3 field as a key and the dot product as the key value 
+    d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs, countries, topn=0, field='cc3')}
+    # map(function) : Apply a function to a Dataframe elementwise. -> the function returns the dot product for the key
     world[term] = world['iso_a3'].map(d)
     world[term] /= world[term].max()
     world.dropna().plot(term, cmap='OrRd')
 
-map_term('coffee')
+map_term(model, 'coffee', country_vecs, countries, world)
 
-map_term('cricket')
+map_term(model, 'cricket', country_vecs, countries, world)
 
-map_term('China')
+map_term(model, 'China', country_vecs, countries, world)
 
-map_term('vodka')
+map_term(model, 'vodka', country_vecs, countries, world)
 
+print()
+print("First of all, run the script until finished to check if syntax error and results")
+print("What is world['iso_a3'] ? ")
+print("What is world[term] ? ")
+print("What does world.dropna().plot(term, cmap='OrRd') ? ")
+print("Check that the above function is well understood.")
+print("Move the above function on the top of this script when finished.")
+print()
+input("DEBUG : check the above remarks and process before continuing")
 
-
+input("DEBUG I AM HERE")
+"""
+         
 # TO DO
 input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
 input("\n\nTo do to better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb \n\n")
