@@ -438,23 +438,21 @@ WORLD_DATA_DIR_BASENAME = "world_map_data"
 PATH_ZIPPED_WORLD_MAP_DATA = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + ".zip"
 personal_functions.download_data_file_from_url(WORLD_MAP_DATA_URL, PATH_ZIPPED_WORLD_MAP_DATA)
 
-input("DEBUG UNZIP DIR HERE")
+input("DEBUG TO DO : UNZIP DIR HERE")
 DATA_FILENAME_BASENAME = "ne_10m_admin_0_countries.shp"
 
 PATH_OF_WORLD_MAP = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + "/" + "ne_10m_admin_0_countries.shp"
 world = gdp.read_file(PATH_OF_WORLD_MAP)
-input("DEBUG WORLD")
+
 
 print("\n\nTO DO")
+print("Check if working (should be) : PATH_OF_WORLD_MAP above to be modified")
 print("Create function to download file from url to dir")
 print("Create function to unzip binary file")
 print("Create function to unzip non-binary file")
-print("DEBUG : PATH_OF_WORLD_MAP above to be modified")
-input("DEBUG OF WARNING about gpd.read_file")
-
-"""
-/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/python_personal_scripts_and_tests/recognizing_word_of_similar_category.py:334: FutureWarning: The geopandas.dataset module is deprecated and will be removed in GeoPandas 1.0. You can get the original 'naturalearth_lowres' data from https://www.naturalearthdata.com/downloads/110m-cultural-vectors/.
-"""
+print("To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
+print()
+input("\nDEBUG : above things to be processed before leaving the script\n")
 
 # head([n]) : Return the first n rows.
 """
@@ -492,11 +490,6 @@ for i in range(len(WORDS_LIST)):
     # Showing the pdf files by opening it with default app (from xdg-open)
     subprocess.call(["xdg-open", path_filename_world_map_with_word])
     
-print("6. Manage the above warning line 354 about 'naturalearth_lowres' data to be treated after by testing with several files from the website")
-print("9. To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
-print()
-input("\nDEBUG : above things to be processed before leaving the script\n")
-
 # Getting back to the dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
 
