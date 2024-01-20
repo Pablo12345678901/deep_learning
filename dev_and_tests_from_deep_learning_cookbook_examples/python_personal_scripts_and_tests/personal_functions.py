@@ -2,6 +2,17 @@
 # They are general in order to be reused
 # in different contexts.
 
+def create_dir_if_not_existing(dir_path):
+    try:
+        if not os.path.isdir(dir_path):
+            os.mkdir(dir_path)
+            print("\nDir \"" + dir_path + "\" created !\n")
+        else:
+            print("\nThe dir \"" + dir_path + "\" was already existing.\n")
+    except:
+        print("\nERROR : the dir \"" + dir_path + "\" could not be created. Exiting...\n")
+        sys.exit(1)
+
 def printing_list_elements(list):
     list_lenght = len(list)
     print("\nPrinting " + str(list_lenght) + " elements of the list :")
