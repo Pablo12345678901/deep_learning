@@ -7,7 +7,7 @@ import random
 import requests
 import geopandas as gpd
 from IPython.core.pylabtools import figsize
-# figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
+figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
 import csv
 ######################################################
 
@@ -32,7 +32,7 @@ def show_words_of_near_context_from_string(model, a_string):
     print("\nWords in the near context of " + a_string + " : " + similar_terms_string + ".\n")
     return None
 
-def rank_countries(model, term, country_vecs, countries, topn=10, field='name'):
+def rank_countries(model, term, country_vecs, countries, topn=10, field='name', silent_true=False):
     """
     Returns a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
     """
@@ -51,8 +51,17 @@ def rank_countries(model, term, country_vecs, countries, topn=10, field='name'):
     #    - the dot product for this country
     LIST_OF_TUPLES_RESULTS = [(countries[idx][field], float(dists[idx]))
                       for idx in reversed(np.argsort(dists)[-topn:])]
-    print("\nThe " + str(topn) + " country/ies of context the closest to the term \"" + str(term) + "\" are :\n")
-    personal_functions.printing_list_of_tuples(LIST_OF_TUPLES_RESULTS)
+    # Adapt the number of elements shown in the message below
+    # If topn = 0, all the elements will be listed so take the len of the results list
+    if topn == 0:
+        NUMBER_OF_ELEMENTS_SHOWN = len(LIST_OF_TUPLES_RESULTS)
+    else:
+        NUMBER_OF_ELEMENTS_SHOWN = topn
+    # Show results only if not silent mode (silent = false)- else only return them
+    if not silent_true:
+        print("\nThe " + str(NUMBER_OF_ELEMENTS_SHOWN) + " country/ies of context the closest to the term \"" + str(term) + "\" are :\n")
+        personal_functions.printing_list_of_tuples(LIST_OF_TUPLES_RESULTS)
+    # In all case (silent or not) > return the result
     return LIST_OF_TUPLES_RESULTS
 
 def show_range_of_vector_element_for_each_country_and_for_all_of_them(countries, model):
@@ -97,6 +106,45 @@ def show_range_of_vector_element_for_each_country_and_for_all_of_them(countries,
     print("\nAll the values are between min : " + str(general_min) + " and max : " + str(general_max) + ".\n")
     # No value returned - only for showing
     return None
+
+def map_term(model, term, country_vecs, countries, world):
+    # Show a world map with color and intensity depending on how much the term is linked to the country (for every country in the world - if data is available for it). 
+    # rank_countries : return a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
+    # Therefore :
+    #    k = the key value (cc3 field = abbreviation of the country name)
+    #    v = the dot product of this country with the term
+    # So here, create a dictionary of UPPER CHAR cc3 field as a key and the dot product as the key value 
+    d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs, countries, topn=0, field='cc3', silent_true=True)}
+    # map(function) : Apply a function to a Dataframe elementwise. -> the function returns the dot product for the key
+    # So here : world[term] is an object representing the list of dot product between the term and each country (which is mapped through its cc3=iso_a3 key)
+    world[term] = world['iso_a3'].map(d)
+    """
+    # Example of world[term] value:
+    0      0.806491
+    1      1.883944
+    2      0.963322
+    3      0.409483
+    4      0.420392
+             ...   
+    172   -0.303006
+    173   -0.089909
+    174         NaN
+    175         NaN
+    176         NaN
+    """
+    # Here : scaling the data (=dividing by the max) before processing it (plot)
+    # Why to scale : https://machinelearningmastery.com/how-to-improve-neural-network-stability-and-modeling-performance-with-data-scaling/
+    # In short, gain of computation time and more stability in the model
+    # Example of world[term].max() value : 1.9432250261306763
+    world[term] /= world[term].max()
+    # .dropna() : remove missing value
+    # .plot : Generate a plot of a GeoDataFrame with matplotlib. 
+    #     showing the plot of the map depending on the term and the countries linked to it
+    # cmap : str (default None) > The name of a colormap recognized by matplotlib.
+    #    see the list of colormaps available here :
+    #        https://matplotlib.org/stable/users/explain/colors/colormaps.html
+    # So here : show a maps with intensity varying on the dot product between the term and each country.
+    world.dropna().plot(term, cmap='Blues')
 
 #####################################################
 
@@ -187,14 +235,14 @@ random.shuffle(labelled)
 # tuples of list and ndarray
 #
 # to an array (to an 'ndarray')
-# so X = a list of vector of numbers from the model for each word/country name = model[country_name] or [random_word]
-X = np.asarray([model[w] for w, l in labelled])
+# so x = a list of vector of numbers from the model for each word/country name = model[country_name] or [random_word]
+x = np.asarray([model[w] for w, l in labelled])
 # y = a list of numbers (0 or 1)
 y = np.asarray([l for w, l in labelled])
 
-# X.shape, y.shape = ndarray.shape
-# = a tuple which show dimensions of the array (X and y)
-#print("Dimensions of ndarray X : " + printing_tuple(X.shape))
+# x.shape, y.shape = ndarray.shape
+# = a tuple which show dimensions of the array (x and y)
+#print("Dimensions of ndarray x : " + printing_tuple(x.shape))
 #print("Dimensions of ndarray y : " + printing_tuple(y.shape))
 
 # Training fraction = a percentage of the sample
@@ -213,23 +261,23 @@ cut_off = int(TRAINING_FRACTION * len(labelled))
 # clf does not produce any printable result, it only creates a model with linear kernel (kind of model - there are other)
 clf = svm.SVC(kernel='linear')
 
-# fit(X, y[, sample_weight]) : Fit the SVM model according to the given training data.
+# fit(x, y[, sample_weight]) : Fit the SVM model according to the given training data.
 # Returns: self object : Fitted estimator.
-# Here, using the first INT elements of X and y
+# Here, using the first INT elements of x and y
 # Reminder :
-#    X is the vector of numbers for each word taken from the model
+#    x is the vector of numbers for each word taken from the model
 #    y is a list of number 0 or 1
-# So the clf.fit takes the vector representing a word (=X) and fits it to 0 or 1 (=y)
+# So the clf.fit takes the vector representing a word (=x) and fits it to 0 or 1 (=y)
 # And then after, it can makes prediction for other samples
 # clf.fit does not produce any printable results, it only fits the model to the class labels in order to make prediction afterwards
-clf.fit(X[:cut_off], y[:cut_off])
+clf.fit(x[:cut_off], y[:cut_off])
 
 # res : 3528 elements consisting of values 0 or 1
-# predict() : Perform classification on samples in X.
-# y_predndarray of shape (n_samples,) : Class labels for samples in X.
+# predict() : Perform classification on samples in x.
+# y_predndarray of shape (n_samples,) : Class labels for samples in x.
 # Here, try to predict the result for all elements after the INT first elements
-# So will predict the class label (=classification from above y (=number 0/1) from the word vector (X) and produce a list of labels (0/1)
-res = clf.predict(X[cut_off:]) 
+# So will predict the class label (=classification from above y (=number 0/1) from the word vector (x) and produce a list of labels (0/1)
+res = clf.predict(x[cut_off:]) 
 
 # Here :
 # zip will create tuples of (0/1, 0/1, (name, 0 / country,1)):
@@ -344,7 +392,6 @@ world = gpd.read_file(PATH_OF_WORLD_MAP)
 """
 /home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/python_personal_scripts_and_tests/recognizing_word_of_similar_category.py:334: FutureWarning: The geopandas.dataset module is deprecated and will be removed in GeoPandas 1.0. You can get the original 'naturalearth_lowres' data from https://www.naturalearthdata.com/downloads/110m-cultural-vectors/.
 """
-input("Above warning to be treated after by testing with several files from the website")
 
 # head([n]) : Return the first n rows.
 """
@@ -358,47 +405,58 @@ input("Above warning to be treated after by testing with several files from the 
 
 [5 rows x 6 columns]
 
+# Meaning :
+(index) pop_est	continent	name	iso_a3	gdp_md_est	geometry
+pop_est : population estimated
+name : country_name
+iso_a3 : abbreviation with 3 letters (similair to cc3)
+gdp_md_est : gross domestric product estimated
+geometry = type of geometry shape
 """
 print(world.head())
 
-def map_term(model, term, country_vecs, countries, world):
-    # rank_countries : return a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
-    # Therefore :
-    #    k = the key value (cc3 field = abbreviation of the country name)
-    #    v = the dot product of this country with the term
-    # So here, create a dictionary of UPPER CHAR cc3 field as a key and the dot product as the key value 
-    d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs, countries, topn=0, field='cc3')}
-    # map(function) : Apply a function to a Dataframe elementwise. -> the function returns the dot product for the key
-    world[term] = world['iso_a3'].map(d)
-    world[term] /= world[term].max()
-    world.dropna().plot(term, cmap='OrRd')
 
+
+##### BEGINNING OF DEBUG ############
+print("\n\nDEBUG DEBUT\n\n")
+
+"""
+try:
+    print("Get the env var 'QT_QPA_PLATFORM' without setting it to wayland")
+    print(os.environ['QT_QPA_PLATFORM'])
+except:
+    print("ERROR : setting 'QT_QPA_PLATFORM' it to wayland")
+    os.environ['QT_QPA_PLATFORM'] = "wayland"
+print(os.environ['QT_QPA_PLATFORM'])
+input("env var value : QT_QPA_PLATFORM")
+"""
+
+"""
+# ERROR MESSAGE HERE IN THE OUTPUT :
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
+"""
+"""
+Other error message :
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in ""
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: eglfs, minimal, minimalegl, offscreen, vnc, webgl, xcb.
+
+"""
+
+# Showing several maps with country more linked to the term colored more intensely
 map_term(model, 'coffee', country_vecs, countries, world)
-
 map_term(model, 'cricket', country_vecs, countries, world)
-
 map_term(model, 'China', country_vecs, countries, world)
-
 map_term(model, 'vodka', country_vecs, countries, world)
 
 print()
-print("First of all, run the script until finished to check if syntax error and results")
-print("What is world['iso_a3'] ? ")
-print("What is world[term] ? ")
-print("What does world.dropna().plot(term, cmap='OrRd') ? ")
-print("Check that the above function is well understood.")
-print("Move the above function on the top of this script when finished.")
+print("3b. Debug the plot showing (wayland issue see above...)")
+print("6. Above warning line 354 about 'naturalearth_lowres' data to be treated after by testing with several files from the website")
+print("8. RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
+print("9. To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
 print()
-input("DEBUG : check the above remarks and process before continuing")
-
-input("DEBUG I AM HERE")
-"""
-         
-# TO DO
-input("\n\nDEBUG TO DO : RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
-input("\n\nTo do to better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb \n\n")
-
-"""
+input("\nDEBUG : above things to be processed before leaving the script\n")
 
 # Getting back to the dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
