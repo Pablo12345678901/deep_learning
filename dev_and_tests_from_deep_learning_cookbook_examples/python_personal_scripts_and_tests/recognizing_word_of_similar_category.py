@@ -1,13 +1,15 @@
 from sklearn import svm
 from keras.utils import get_file
 import os
+#os.environ["XDG_SESSION_TYPE"] = "xcb" # to locally change from Wayland to Xorg (and avoiding setting the whole computer to Xorg
+os.environ["QT_QPA_PLATFORM"] = "wayland" # To get rid of the warning message : "Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway."
 import gensim
 import numpy as np
 import random
 import requests
 import geopandas as gpd
 from IPython.core.pylabtools import figsize
-figsize(12, 8) # don't know yet if it is important - was on the top on the Notebook
+figsize(12, 8) # Set the default figure (for plots) size to be [sizex, sizey].
 import csv
 ######################################################
 
@@ -143,6 +145,8 @@ def map_term(model, term, country_vecs, countries, world):
     # cmap : str (default None) > The name of a colormap recognized by matplotlib.
     #    see the list of colormaps available here :
     #        https://matplotlib.org/stable/users/explain/colors/colormaps.html
+    # figsize : Size of the resulting matplotlib.figure.Figure. If the argument axes is given explicitly, figsize is ignored.
+    # Reminder about figsize : comes from "from IPython.core.pylabtools import figsize"
     # So here : show a maps with intensity varying on the dot product between the term and each country.
     world.dropna().plot(term, cmap='Blues')
 
