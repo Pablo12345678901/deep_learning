@@ -1,5 +1,6 @@
 import os
 import sys
+import urllib
 
 # This file contain my personal functions
 # They are general in order to be reused
@@ -16,6 +17,12 @@ def create_dir_if_not_existing(dir_path):
         print("\nERROR : the dir \"" + dir_path + "\" could not be created. Exiting...\n")
         sys.exit(1)
 
+def download_data_file_from_url(data_file_url, path_data_filename):
+    # Download the file and return a tuple :
+    # (path to your output file, HTTP message object)
+    urllib.request.urlretrieve(data_file_url, path_data_filename)
+    return None
+        
 def printing_list_elements(list):
     list_lenght = len(list)
     print("\nPrinting " + str(list_lenght) + " elements of the list :")

@@ -27,37 +27,37 @@ import subprocess # to execute shell command from script - here to open PDF file
 
 ######################################################
 
-def download_data_file_from_url(data_file_url):
-    return None
-
-def unzip_data_file(data_file_path):
+def unzip_binary_data_file(data_file_path):
     # Get the extension
     # Use the unzip method depending on the extension
     # If extension not know - exit with error
+    """
+    _return_data_file_path():
+
+        # If future unzipped file is not existing yet - unzipping from file downloaded above
+        if not os.path.isfile(unzipped):
+            with gzip.open(path, 'rb') as file_in:
+                with open(unzipped, 'wb') as file_out:
+                    print("\nUnzipping the binary file located on path \"" + path + "\"")
+                    shutil.copyfileobj(file_in, file_out)
+                    print("Binary file obtained after successfully unzipping !\n")
+    """
     return None
 
-"""
-_return_data_file_path():
-    # Manually downloaded the gzip file as other available are corrupted
-    # And as the official one on the Google Drive can not be download with
-    # GET request, only with POST request
-    # and no idea of the parameters required...
-    DATA_DIR = DIR_OF_PROJECT + "/data" 
-    path = DATA_DIR + "/" + MODEL + ".gz"
+def unzip_non_binary_data_file():
+    return None
 
 
 
-    # Get name of future unzipped file
-    unzipped = os.path.join('data', MODEL)
 
-    # If future unzipped file is not existing yet - unzipping from file downloaded above
-    if not os.path.isfile(unzipped):
-        with gzip.open(path, 'rb') as file_in:
-            with open(unzipped, 'wb') as file_out:
-                print("\nUnzipping the binary file located on path \"" + path + "\"")
-                shutil.copyfileobj(file_in, file_out)
-                print("Binary file obtained after successfully unzipping !\n")
-"""
+
+
+
+
+
+
+
+
 
 def show_words_of_near_context_from_string(model, a_string):
     # Get a list of tuples with two elements
@@ -426,20 +426,29 @@ rank_countries(model, 'cricket', country_vecs, countries)
 # gpd = geopandas
 # gpd.datasets.get_path : Get the path to the data file from the geopandas library.
 # '.../python*.*/site-packages/geopandas/datasets/naturalearth_lowres/naturalearth_lowres.shp'
-PATH_OF_WORLD_MAP = gpd.datasets.get_path('naturalearth_lowres')
+input("DEBUG IN DEV PATH_OF_WORLD_MAP THEN REMOVE WHEN OK")
+#PATH_OF_WORLD_MAP = gpd.datasets.get_path('naturalearth_lowres')
 # gpd.read_file : Returns a GeoDataFrame from a file or URL.
 # So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
 # GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
 # Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
-#
-#
-#world = gpd.read_file(PATH_OF_WORLD_MAP)
-world = gpd.read_file('/home/incognito/Downloads/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp')
 
+WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip" # Obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
+WORLD_DATA_DIR_BASENAME = "world_map_data"
+PATH_ZIPPED_WORLD_MAP_DATA = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + ".zip"
+personal_functions.download_data_file_from_url(WORLD_MAP_DATA_URL, PATH_ZIPPED_WORLD_MAP_DATA)
+
+input("DEBUG UNZIP DIR HERE")
+DATA_FILENAME_BASENAME = "ne_10m_admin_0_countries.shp"
+
+PATH_OF_WORLD_MAP = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + "/" + "ne_10m_admin_0_countries.shp"
+world = gdp.read_file(PATH_OF_WORLD_MAP)
+input("DEBUG WORLD")
 
 print("\n\nTO DO")
 print("Create function to download file from url to dir")
-print("Create function to unzip file")
+print("Create function to unzip binary file")
+print("Create function to unzip non-binary file")
 print("DEBUG : PATH_OF_WORLD_MAP above to be modified")
 input("DEBUG OF WARNING about gpd.read_file")
 
