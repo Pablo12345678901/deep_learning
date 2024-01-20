@@ -1,8 +1,11 @@
 from sklearn import svm
 from keras.utils import get_file
 import os
-#os.environ["XDG_SESSION_TYPE"] = "xcb" # to locally change from Wayland to Xorg (and avoiding setting the whole computer to Xorg
-os.environ["QT_QPA_PLATFORM"] = "wayland" # To get rid of the warning message : "Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway."
+# Change locally from walyand to xorg because of hardware/software incompatibily issue
+# Setting two env vars to get rid of the warning message : "Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway."
+# Because current config is set to wayland windows manager (and not Xorg)
+os.environ["QT_QPA_PLATFORM"] = "xcb"
+os.environ["XDG_SESSION_TYPE"] = "x11"
 import gensim
 import numpy as np
 import random
@@ -20,6 +23,7 @@ import shutil # for unzipping the model file
 from operator import itemgetter # To sort dictionary by key value
 import sys # for sys.exit(INT)
 import time # for time.sleep(INT)
+import subprocess # to execute shell command from script - here to open PDF files
 
 ######################################################
 
@@ -109,7 +113,7 @@ def show_range_of_vector_element_for_each_country_and_for_all_of_them(countries,
     # No value returned - only for showing
     return None
 
-def map_term(model, term, country_vecs, countries, world):
+def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix):
     # Show a world map with color and intensity depending on how much the term is linked to the country (for every country in the world - if data is available for it). 
     # rank_countries : return a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
     # Therefore :
@@ -147,8 +151,13 @@ def map_term(model, term, country_vecs, countries, world):
     #        https://matplotlib.org/stable/users/explain/colors/colormaps.html
     # figsize : Size of the resulting matplotlib.figure.Figure. If the argument axes is given explicitly, figsize is ignored.
     # Reminder about figsize : comes from "from IPython.core.pylabtools import figsize"
-    # So here : show a maps with intensity varying on the dot product between the term and each country.
-    world.dropna().plot(term, cmap='Blues')
+    # So here : Return a plot with a world map with intensity varying on the dot product between the term and each country.
+    PLOT_ABOUT_TERM = world.dropna().plot(term, cmap='Blues')
+    # get_figure() : Return the Figure instance the artist belongs to.
+    # savefig() : Save the current figure (with optional custom format)
+    # Both function comes from 'matplotlib.figure.Figure' object
+    # So here : save the world map into a PDF file
+    PLOT_ABOUT_TERM.get_figure().savefig(file_dir_and_prefix + str(term) + ".pdf", format='pdf')
 
 #####################################################
 
@@ -172,8 +181,9 @@ MODEL = 'GoogleNews-vectors-negative300.bin'
 # Manually downloaded the gzip file as other available are corrupted
 # And as the official one on the Google Drive can not be download with
 # GET request, only with POST request
-# and no idea of the parameters required... 
-path = DIR_OF_PROJECT + "/data" + "/" + MODEL + ".gz"
+# and no idea of the parameters required...
+DATA_DIR = DIR_OF_PROJECT + "/data" 
+path = DATA_DIR + "/" + MODEL + ".gz"
 
 # Creating dir if not existing
 if not os.path.isdir('data'):
@@ -418,45 +428,22 @@ gdp_md_est : gross domestric product estimated
 geometry = type of geometry shape
 """
 print(world.head())
+print() # Esthetic
 
-
-
-##### BEGINNING OF DEBUG ############
-print("\n\nDEBUG DEBUT\n\n")
-
-"""
-try:
-    print("Get the env var 'QT_QPA_PLATFORM' without setting it to wayland")
-    print(os.environ['QT_QPA_PLATFORM'])
-except:
-    print("ERROR : setting 'QT_QPA_PLATFORM' it to wayland")
-    os.environ['QT_QPA_PLATFORM'] = "wayland"
-print(os.environ['QT_QPA_PLATFORM'])
-input("env var value : QT_QPA_PLATFORM")
-"""
-
-"""
-# ERROR MESSAGE HERE IN THE OUTPUT :
-Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
-"""
-"""
-Other error message :
-qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in ""
-This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
-
-Available platform plugins are: eglfs, minimal, minimalegl, offscreen, vnc, webgl, xcb.
-
-"""
-
-# Showing several maps with country more linked to the term colored more intensely
-map_term(model, 'coffee', country_vecs, countries, world)
-map_term(model, 'cricket', country_vecs, countries, world)
-map_term(model, 'China', country_vecs, countries, world)
-map_term(model, 'vodka', country_vecs, countries, world)
-
-print()
-print("3b. Debug the plot showing (wayland issue see above...)")
-print("6. Above warning line 354 about 'naturalearth_lowres' data to be treated after by testing with several files from the website")
+# Set where the PDF of plot results will be saved
+file_prefix = "map_world_"
+file_dir_and_prefix = DATA_DIR + "/" + file_prefix
+# List of words for which to process a PDF
+WORDS_LIST = [ 'coffee', 'cricket', 'China', 'vodka', 'Pablo' ]
+for i in range(len(WORDS_LIST)):
+    current_word = WORDS_LIST[i]
+    # Saving several maps with country more linked to the term colored more intensely
+    map_term(model, current_word, country_vecs, countries, world, file_dir_and_prefix)
+    path_filename_world_map_with_word = file_dir_and_prefix + current_word + ".pdf"
+    # Showing the pdf files by opening it with default app (from xdg-open)
+    subprocess.call(["xdg-open", path_filename_world_map_with_word])
+    
+print("6. Manage the above warning line 354 about 'naturalearth_lowres' data to be treated after by testing with several files from the website")
 print("8. RENAME SCRIPT DEPENDING OF FINAL CONTENT UNDERSTANDING")
 print("9. To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
 print()
