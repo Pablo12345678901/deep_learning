@@ -1,3 +1,6 @@
+import os
+import sys
+
 # This file contain my personal functions
 # They are general in order to be reused
 # in different contexts.
