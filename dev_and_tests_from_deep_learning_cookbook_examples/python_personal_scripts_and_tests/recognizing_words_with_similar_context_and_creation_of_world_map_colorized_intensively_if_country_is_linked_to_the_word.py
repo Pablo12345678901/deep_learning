@@ -404,17 +404,7 @@ PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + "ne_10m_admin_0_countries.shp
 # So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
 # GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
 # Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
-world = gdp.read_file(PATH_OF_WORLD_MAP)
-
-
-
-
-
-
-print("\n\nTO DO")
-print("To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
-print()
-input("\nDEBUG : above things to be processed before leaving the script\n")
+world = gpd.read_file(PATH_OF_WORLD_MAP)
 
 # head([n]) : Return the first n rows.
 """
@@ -440,8 +430,12 @@ print(world.head())
 print() # Esthetic
 
 # Set where the PDF of plot results will be saved
+pdf_files_dir = DATA_DIR + "/" + "world_map_pdf"
+# Create the dir if not yet done
+personal_functions.create_dir_if_not_existing(pdf_files_dir)
+# Customized file prefix if wished - else set to ''
 file_prefix = "map_world_"
-file_dir_and_prefix = DATA_DIR + "/" + file_prefix
+file_dir_and_prefix = pdf_files_dir + "/" + file_prefix
 # List of words for which to process a PDF
 WORDS_LIST = [ 'coffee', 'cricket', 'China', 'vodka', 'Pablo' ]
 for i in range(len(WORDS_LIST)):
@@ -454,4 +448,9 @@ for i in range(len(WORDS_LIST)):
     
 # Getting back to the dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
+
+print("\n\nTO DO")
+print("To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
+print()
+input("\nDEBUG : above things to be processed before leaving the script\n")
 
