@@ -18,46 +18,12 @@ import csv
 
 # My custom libraries
 import personal_functions # see personal_functions.py of same dir = my personal functions list
-import gzip # for unzipping the model file
-import shutil # for unzipping the model file
 from operator import itemgetter # To sort dictionary by key value
 import sys # for sys.exit(INT)
 import time # for time.sleep(INT)
 import subprocess # to execute shell command from script - here to open PDF files
 
 ######################################################
-
-def unzip_binary_data_file(data_file_path):
-    # Get the extension
-    # Use the unzip method depending on the extension
-    # If extension not know - exit with error
-    """
-    _return_data_file_path():
-
-        # If future unzipped file is not existing yet - unzipping from file downloaded above
-        if not os.path.isfile(unzipped):
-            with gzip.open(path, 'rb') as file_in:
-                with open(unzipped, 'wb') as file_out:
-                    print("\nUnzipping the binary file located on path \"" + path + "\"")
-                    shutil.copyfileobj(file_in, file_out)
-                    print("Binary file obtained after successfully unzipping !\n")
-    """
-    return None
-
-def unzip_non_binary_data_file():
-    return None
-
-
-
-
-
-
-
-
-
-
-
-
 
 def show_words_of_near_context_from_string(model, a_string):
     # Get a list of tuples with two elements
@@ -217,19 +183,12 @@ MODEL = 'GoogleNews-vectors-negative300.bin'
 DATA_DIR = DIR_OF_PROJECT + "/data" 
 path = DATA_DIR + "/" + MODEL + ".gz"
 
+# Create data dir if not yet existing
 personal_functions.create_dir_if_not_existing(DATA_DIR)
 
-# Get name of future unzipped file
-unzipped = os.path.join(DATA_DIR, MODEL)
-
-# If future unzipped file is not existing yet - unzipping from file downloaded above
-if not os.path.isfile(unzipped):
-    with gzip.open(path, 'rb') as file_in:
-        with open(unzipped, 'wb') as file_out:
-            print("\nUnzipping the binary file located on path \"" + path + "\"")
-            shutil.copyfileobj(file_in, file_out)
-            print("Binary file obtained after successfully unzipping !\n")
-        
+# Unzipping the model (if not yet done) and get the name of unzipped file
+unzipped = personal_functions.unzip_data_file(path, binary_true=True)
+   
 # Model loading
 print("\nLoading the word2vec model...")
 model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
