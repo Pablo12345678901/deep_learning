@@ -4,18 +4,21 @@ import pathlib
 import shutil
 import sys
 import urllib
+import zipfile
 
 # This file contain my personal functions
 # They are general in order to be reused
 # in different contexts.
 
 def create_dir_if_not_existing(dir_path):
+    # Try to create dir (if not existing) and return the path or exit with error
     try:
         if not os.path.isdir(dir_path):
             os.mkdir(dir_path)
             print("\nDir \"" + dir_path + "\" created !\n")
         else:
             print("\nThe dir \"" + dir_path + "\" was already existing.\n")
+        return dir_path
     except:
         print("\nERROR : the dir \"" + dir_path + "\" could not be created. Exiting...\n")
         sys.exit(1)
@@ -77,29 +80,45 @@ def printing_zip_elements(zip_object):
 
 def unzip_data_file(data_file_path, binary_true=False):
     """
-    Returns the unzipped filepath or exit with error if did not recognize the extension
-    """
-    ##########################################
-    # Enhancements :
-    # Get the extension
-    # Use the unzip method depending on the extension
-    # If extension not know - exit with error
-    ##########################################    
-    # Adaptation if binary file
+    Returns the dir where the file was unzipped or exit with error if did not recognize the extension.
+    """  
+    # Adaptation of write and read mode if binary file
     READ_CUSTOM_MODE = "r"
     WRITE_CUSTOM_MODE = "w"
     if binary_true==True:
         READ_CUSTOM_MODE += "b"
         WRITE_CUSTOM_MODE += "b"
-        
+
+    # Check if the data file path provided exists - exit with error else
+    if not os.path.exists(data_file_path):
+        print("\nERROR : the path \"" + data_file_path + "\" does not exist. \nPlease check it and re-try after.\nExiting...\n")
+        sys.exit(1)
+    
     # Get the file extension from the path
     file_extension = str(pathlib.Path(data_file_path).suffix)
-    # Get the simulated unzipped filename (by removing the extension)
-    unzipped_file_path = str(pathlib.Path(data_file_path).with_suffix(''))
-    # Get the simulated file basename
-    unzipped_file_basename = os.path.basename(unzipped_file_path)
 
-    # Check if the extension is known
+    # Check if the extension is known - add one for each condition below
+    EXTENSION_LIST = [ ".gz", ".gzip", ".zip" ]
+    FLAG_EXTENSION_IN_EXTENSION_LIST_TRUE = False
+    for EXTENSION_NAME in EXTENSION_LIST:
+        if file_extension == EXTENSION_NAME:
+            FLAG_EXTENSION_IN_EXTENSION_LIST_TRUE = True
+            break
+    # If extension not know, print error message and exit
+    if not FLAG_EXTENSION_IN_EXTENSION_LIST_TRUE:    
+        print("\nERROR : the filename extension \"" + file_extension + "\" is unknown. Check the filename or develop a condition for processing such filename extension...\n")
+        sys.exit(1)
+
+    # Get the target name of unzipped dir = filename without extension
+    unzipped_target_dir = str(pathlib.Path(data_file_path).with_suffix(''))
+    # Create it if not already existing
+    create_dir_if_not_existing(unzipped_target_dir)
+    # Get the simulated file basename
+    unzipped_file_basename = os.path.basename(unzipped_target_dir)
+    # Get the simulated unzipped filename = target dir + basename
+    unzipped_file_path = unzipped_target_dir + "/" + unzipped_file_basename
+    
+    # gzip
     if ( file_extension == ".gz" or file_extension == ".gzip" ):
         # Check if an unzipped file with same name does not already exists
         if not os.path.isfile(unzipped_file_path):
@@ -111,9 +130,12 @@ def unzip_data_file(data_file_path, binary_true=False):
                     print("Binary file \"" + unzipped_file_basename + "\" located \"" + unzipped_file_path + "\" obtained after successfully unzipping !\n")
         else:
             print("\nAn unzipped file with the name \"" + unzipped_file_basename + "\" located \"" + unzipped_file_path + "\" already exists.\nPlease remove/rename it and re-try after...\n")
-    # If extension not know, print error message and exit
-    else:
-        print("\nERROR : the filename extension \"" + file_extension + "\" is unknown. Check the filename or develop a condition for processing such filename extension...\n")
-        sys.exit(1)
-    # Returning the unzipped file path to use it outside the function      
-    return unzipped_file_path
+
+    # zip
+    if file_extension == ".zip":
+        with zipfile.ZipFile(data_file_path, READ_CUSTOM_MODE) as zip_ref:
+            # Unzip in target dir
+            zip_ref.extractall(unzipped_target_dir)
+            
+    # Returning the dir where files were unzipped to use it outside the function      
+    return unzipped_target_dir

@@ -186,12 +186,14 @@ path = DATA_DIR + "/" + MODEL + ".gz"
 # Create data dir if not yet existing
 personal_functions.create_dir_if_not_existing(DATA_DIR)
 
-# Unzipping the model (if not yet done) and get the name of unzipped file
-unzipped = personal_functions.unzip_data_file(path, binary_true=True)
+# Unzipping the model dir (if not yet done) and getting its name
+unzipped_model_dir = personal_functions.unzip_data_file(path, binary_true=True)
+# Get the name of the model unzipped file
+unzipped_model_path = unzipped_model_dir + "/" + MODEL
    
 # Model loading
 print("\nLoading the word2vec model...")
-model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format(unzipped_model_path, binary=True)
 print("Finished to load the word2vec model !\n")
 
 # Getting words of near context - see function above
@@ -307,7 +309,7 @@ print("Percentage of right answers : " + pretty_percentage, "%", "\n", "List of 
 print("\nGet the prediction (classification labels) for all words (vector) in the model.\nWarning : can take time depending on CPU/GPU...\n")
 # Here : get the prediction (classification labels) for all words (vector) in the model
 # Reminder :
-# model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
+# model = gensim.models.KeyedVectors.load_word2vec_format(unzipped_model_path, binary=True)
 # model = KeyedVectors object
 # all_predictions = list of numbers (=labels) 0/1 (0 = word / 1 = country) 
 all_predictions = clf.predict(model.vectors) # similar to 'res' list above
@@ -382,33 +384,34 @@ print() # Esthetic
 # Show the 10 countries the nearest to the 'cricket' word
 rank_countries(model, 'cricket', country_vecs, countries)
 
+# Below : few steps to download and create an object for the world map model
+WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip" # Obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
+# Customized pretty dirname
+WORLD_DATA_DIR_BASENAME = "world_map_data"
+# Create the path name of future zipped (dir) file 
+PATH_ZIPPED_WORLD_MAP_DATA = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + ".zip"
+# Download the data (dir) file from url
+personal_functions.download_data_file_from_url(WORLD_MAP_DATA_URL, PATH_ZIPPED_WORLD_MAP_DATA)
+# Unzip the dir if not done and get unzipped dir path
+unzipped_world_map_dir = personal_functions.unzip_data_file(PATH_ZIPPED_WORLD_MAP_DATA, binary_true=False)
+# Specific data filename used below
+DATA_FILENAME_BASENAME = "ne_10m_admin_0_countries.shp"
+# Concatenate dir + data file basename to get data filename
+PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + "ne_10m_admin_0_countries.shp"
+
 # gpd = geopandas
-# gpd.datasets.get_path : Get the path to the data file from the geopandas library.
-# '.../python*.*/site-packages/geopandas/datasets/naturalearth_lowres/naturalearth_lowres.shp'
-input("DEBUG IN DEV PATH_OF_WORLD_MAP THEN REMOVE WHEN OK")
-#PATH_OF_WORLD_MAP = gpd.datasets.get_path('naturalearth_lowres')
 # gpd.read_file : Returns a GeoDataFrame from a file or URL.
 # So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
 # GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
 # Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
-
-WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip" # Obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
-WORLD_DATA_DIR_BASENAME = "world_map_data"
-PATH_ZIPPED_WORLD_MAP_DATA = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + ".zip"
-personal_functions.download_data_file_from_url(WORLD_MAP_DATA_URL, PATH_ZIPPED_WORLD_MAP_DATA)
-
-input("DEBUG TO DO : UNZIP DIR HERE")
-DATA_FILENAME_BASENAME = "ne_10m_admin_0_countries.shp"
-
-PATH_OF_WORLD_MAP = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + "/" + "ne_10m_admin_0_countries.shp"
 world = gdp.read_file(PATH_OF_WORLD_MAP)
 
 
+
+
+
+
 print("\n\nTO DO")
-print("Check if working (should be) : PATH_OF_WORLD_MAP above to be modified")
-print("Create function to download file from url to dir")
-print("Create function to unzip binary file")
-print("Create function to unzip non-binary file")
 print("To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
 print()
 input("\nDEBUG : above things to be processed before leaving the script\n")
