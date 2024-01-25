@@ -121,7 +121,7 @@ def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix):
     d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs, countries, topn=0, field='cc3', silent_true=True)}
     # map(function) : Apply a function to a Dataframe elementwise. -> the function returns the dot product for the key
     # So here : world[term] is an object representing the list of dot product between the term and each country (which is mapped through its cc3=iso_a3 key)
-    world[term] = world['iso_a3'].map(d)
+    world[term] = world['ISO_A3'].map(d)
     """
     # Example of world[term] value:
     0      0.806491
@@ -180,7 +180,7 @@ MODEL = 'GoogleNews-vectors-negative300.bin'
 # And as the official one on the Google Drive can not be download with
 # GET request, only with POST request
 # and no idea of the parameters required...
-DATA_DIR = DIR_OF_PROJECT + "/data" 
+DATA_DIR = DIR_OF_PROJECT + "/" + "data" 
 path = DATA_DIR + "/" + MODEL + ".gz"
 
 # Create data dir if not yet existing
@@ -301,8 +301,15 @@ percentage_of_right_answers_float = 100 - 100 * percentage_of_failure
 # Format the float to max 4 digits, with max 2 decimals
 # ':' takes the argument provided to 'format' function
 pretty_percentage = "{:4.2f}".format(percentage_of_right_answers_float)
-# Showing the result (percentage + failure list)
-print("Percentage of right answers : " + pretty_percentage, "%", "\n", "List of tuples for which the model prediction was wrong : ", "\n", missed, "\n")
+# Adapting the 's' at the end of the noun if plural (just for the fun)
+number_of_wrong_predictions = len(missed)
+tuples_singular_or_plural = "tuple"
+if number_of_wrong_predictions > 1:
+    tuples_singular_or_plural += "s"    
+# Showing the result (percentage of correct results + number of failure(s) + failure(s) list)
+# Here I trained the syntax of the 'print' function output (with commas)
+print("Percentage of right answers : " + pretty_percentage, "%", "\nList of", str(number_of_wrong_predictions), tuples_singular_or_plural, "for which the model prediction was wrong : ")
+print(missed, "\n")
 
 # Warning about this step because it takes time
 # So show when it starts
@@ -385,7 +392,12 @@ print() # Esthetic
 rank_countries(model, 'cricket', country_vecs, countries)
 
 # Below : few steps to download and create an object for the world map model
+# Original website of world maps : https://www.naturalearthdata.com/downloads/
+input("DEBUG Still choosing one url - not sure which works")
 WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip" # Obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
+# Other secondary url
+#WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_map_units.zip"
+
 # Customized pretty dirname
 WORLD_DATA_DIR_BASENAME = "world_map_data"
 # Create the path name of future zipped (dir) file 
@@ -394,11 +406,21 @@ PATH_ZIPPED_WORLD_MAP_DATA = DATA_DIR + "/" + WORLD_DATA_DIR_BASENAME + ".zip"
 personal_functions.download_data_file_from_url(WORLD_MAP_DATA_URL, PATH_ZIPPED_WORLD_MAP_DATA)
 # Unzip the dir if not done and get unzipped dir path
 unzipped_world_map_dir = personal_functions.unzip_data_file(PATH_ZIPPED_WORLD_MAP_DATA, binary_true=False)
-# Specific data filename used below
-DATA_FILENAME_BASENAME = "ne_10m_admin_0_countries.shp"
-# Concatenate dir + data file basename to get data filename
-PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + "ne_10m_admin_0_countries.shp"
 
+# Specify a dynamic data filename (with extension .shp) from the url - it will then be used below
+# Get basename from url
+# split from the right by cutting at the first separator '/' just once
+# Results is a list of two element
+# Then get element at index 1 = the last one
+URL_BASENAME = WORLD_MAP_DATA_URL.rsplit('/', 1)[1]
+# Remove extension
+# Roughly the same as above this time, get the right element (index 0)
+URL_BASENAME_WITHOUT_EXTENSION = URL_BASENAME.rsplit('.', 1)[0]
+# Add extension .shp
+DATA_FILENAME_BASENAME = URL_BASENAME_WITHOUT_EXTENSION + ".shp"
+
+# Concatenate dir + data file basename to get data filename
+PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + DATA_FILENAME_BASENAME
 # gpd = geopandas
 # gpd.read_file : Returns a GeoDataFrame from a file or URL.
 # So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
