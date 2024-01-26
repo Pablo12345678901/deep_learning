@@ -14,6 +14,7 @@ import geopandas as gpd
 from IPython.core.pylabtools import figsize
 figsize(12, 8) # Set the default figure (for plots) size to be [sizex, sizey].
 import csv
+
 ######################################################
 
 # My custom libraries
@@ -111,17 +112,19 @@ def show_range_of_vector_element_for_each_country_and_for_all_of_them(countries,
     # No value returned - only for showing
     return None
 
-def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix):
-    # Show a world map with color and intensity depending on how much the term is linked to the country (for every country in the world - if data is available for it). 
+def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix, matching_key):
+    # Show a world map with color and intensity depending on how much the term is linked to the country (for every country in the world - if data is available for it).
+    # Above parameter 'matching_key' = to adapt the matching key 'iso_a3' or 'ISO_A3' depending on the data file used (and therefore of the key name within)
+    
     # rank_countries : return a tuple with the content of the key value and the dot vector from the countries having the more in common with the term.
     # Therefore :
-    #    k = the key value (cc3 field = abbreviation of the country name)
+    #    k = the key value (cc3 field = abbreviation of the country name) - set to upper letter to match the 'world' object which has ISO_A3 (upper) keys
     #    v = the dot product of this country with the term
     # So here, create a dictionary of UPPER CHAR cc3 field as a key and the dot product as the key value 
     d = {k.upper(): v for k, v in rank_countries(model, term, country_vecs, countries, topn=0, field='cc3', silent_true=True)}
     # map(function) : Apply a function to a Dataframe elementwise. -> the function returns the dot product for the key
     # So here : world[term] is an object representing the list of dot product between the term and each country (which is mapped through its cc3=iso_a3 key)
-    world[term] = world['ISO_A3'].map(d)
+    world[term] = world[matching_key].map(d)
     """
     # Example of world[term] value:
     0      0.806491
@@ -141,16 +144,19 @@ def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix):
     # In short, gain of computation time and more stability in the model
     # Example of world[term].max() value : 1.9432250261306763
     world[term] /= world[term].max()
-    # .dropna() : remove missing value
+    
+    # .dropna() : remove missing values
     # .plot : Generate a plot of a GeoDataFrame with matplotlib. 
     #     showing the plot of the map depending on the term and the countries linked to it
+    # column : The name of the dataframe column, np.array, or pd.Series to be plotted.
     # cmap : str (default None) > The name of a colormap recognized by matplotlib.
     #    see the list of colormaps available here :
     #        https://matplotlib.org/stable/users/explain/colors/colormaps.html
-    # figsize : Size of the resulting matplotlib.figure.Figure. If the argument axes is given explicitly, figsize is ignored.
+    # figsize : Size of the resulting matplotlib.figure.Figure. If the argument axes is given explicitly, figsize is ignored. - Here figsize is defined on the top part of the script.
     # Reminder about figsize : comes from "from IPython.core.pylabtools import figsize"
     # So here : Return a plot with a world map with intensity varying on the dot product between the term and each country.
-    PLOT_ABOUT_TERM = world.dropna().plot(term, cmap='Blues')
+    PLOT_ABOUT_TERM = world.dropna().plot(column=term, cmap='Blues')
+    
     # get_figure() : Return the Figure instance the artist belongs to.
     # savefig() : Save the current figure (with optional custom format)
     # Both function comes from 'matplotlib.figure.Figure' object
@@ -391,12 +397,9 @@ print() # Esthetic
 # Show the 10 countries the nearest to the 'cricket' word
 rank_countries(model, 'cricket', country_vecs, countries)
 
-# Below : few steps to download and create an object for the world map model
 # Original website of world maps : https://www.naturalearthdata.com/downloads/
-input("DEBUG Still choosing one url - not sure which works")
-WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip" # Obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
-# Other secondary url
-#WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_map_units.zip"
+# Below url obtained with 'curl -v -L COPY_PASTED_LINK_FROM_WEBSITE' to show the final url redirected
+WORLD_MAP_DATA_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
 
 # Customized pretty dirname
 WORLD_DATA_DIR_BASENAME = "world_map_data"
@@ -426,11 +429,44 @@ PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + DATA_FILENAME_BASENAME
 # So here : get the path from the file name, read it and return a GeoDataFrame representing the world.
 # GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
 # Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
-world = gpd.read_file(PATH_OF_WORLD_MAP)
 
-# head([n]) : Return the first n rows.
+
+
+
+
+input("DEBUG : issue with the data file - trying to understand why - because with original data it works but not with my custom data...")
+world = gpd.read_file(PATH_OF_WORLD_MAP)
+# Defining the equivalent key of 'cc3' from the data file (can be 'iso_a3' or 'ISO_A3' depending on it)
+matching_key = "ISO_A3"
+
+# Original code below (but creates a warning so corrected above
+#world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+# Defining the equivalent key of 'cc3' from the data file (can be 'iso_a3' or 'ISO_A3' depending on it)
+#matching_key = "iso_a3"
+
+
+
+
+
+# Checking that the bounds from the model and from the GeoDataFrame (by default) are compatible
+# GeoDataFrame.total_bounds : returns a tuple containing minx, miny, maxx, maxy values for the bounds of the series as a whole.
+print(world.total_bounds) # [-180.          -90.          180.           83.63410065]
+
+# GeoDataFrame.crs : The coordinate reference system (CRS) = see also below the EPSG
+# From the official doc : It is important because the geometric shapes in a GeoSeries or GeoDataFrame object are simply a collection of coordinates in an arbitrary space.
+# A CRS tells Python how those coordinates relate to places on the Earth.
+# EPSG (wikipedia)
 """
-# Example of output returned by world.head() :
+EPSG Geodetic Parameter Dataset (also EPSG registry) is a public registry of geodetic datums, spatial reference systems, Earth ellipsoids, coordinate transformations and related units of measurement, originated by a member of the European Petroleum Survey Group (EPSG) in 1985. Each entity is assigned an EPSG code between 1024 and 32767,[1][2] along with a standard machine-readable well-known text (WKT) representation. The dataset is maintained by the IOGP Geomatics Committee.[3]
+"""
+# See also : https://spatialreference.org/ &  https://epsg.io/
+print(world.crs) # EPSG:4326 = bounds [-180.          -90.          180.           90.] = ok
+      
+# Printing data sample from 'world' map data file
+# GeoDataFrame.head([n]) : Return the first n rows.
+"""
+Output example of world.head() :
+
        pop_est  ...                                           geometry
 0     889953.0  ...  MULTIPOLYGON (((180.00000 -16.06713, 180.00000...
 1   58005463.0  ...  POLYGON ((33.90371 -0.95000, 34.07262 -1.05982...
@@ -440,13 +476,6 @@ world = gpd.read_file(PATH_OF_WORLD_MAP)
 
 [5 rows x 6 columns]
 
-# Meaning :
-(index) pop_est	continent	name	iso_a3	gdp_md_est	geometry
-pop_est : population estimated
-name : country_name
-iso_a3 : abbreviation with 3 letters (similair to cc3)
-gdp_md_est : gross domestric product estimated
-geometry = type of geometry shape
 """
 print(world.head())
 print() # Esthetic
@@ -463,7 +492,7 @@ WORDS_LIST = [ 'coffee', 'cricket', 'China', 'vodka', 'Pablo' ]
 for i in range(len(WORDS_LIST)):
     current_word = WORDS_LIST[i]
     # Saving several maps with country more linked to the term colored more intensely
-    map_term(model, current_word, country_vecs, countries, world, file_dir_and_prefix)
+    map_term(model, current_word, country_vecs, countries, world, file_dir_and_prefix, matching_key)
     path_filename_world_map_with_word = file_dir_and_prefix + current_word + ".pdf"
     # Showing the pdf files by opening it with default app (from xdg-open)
     subprocess.call(["xdg-open", path_filename_world_map_with_word])
