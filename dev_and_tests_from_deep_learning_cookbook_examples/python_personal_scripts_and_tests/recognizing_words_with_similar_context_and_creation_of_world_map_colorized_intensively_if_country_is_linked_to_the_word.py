@@ -155,7 +155,10 @@ def map_term(model, term, country_vecs, countries, world, file_dir_and_prefix, m
     # figsize : Size of the resulting matplotlib.figure.Figure. If the argument axes is given explicitly, figsize is ignored. - Here figsize is defined on the top part of the script.
     # Reminder about figsize : comes from "from IPython.core.pylabtools import figsize"
     # So here : Return a plot with a world map with intensity varying on the dot product between the term and each country.
-    PLOT_ABOUT_TERM = world.dropna().plot(column=term, cmap='Blues')
+
+
+
+    PLOT_ABOUT_TERM = world.plot(column=term, cmap='Blues')
     
     # get_figure() : Return the Figure instance the artist belongs to.
     # savefig() : Save the current figure (with optional custom format)
@@ -430,23 +433,158 @@ PATH_OF_WORLD_MAP = unzipped_world_map_dir + "/" + DATA_FILENAME_BASENAME
 # GeoDataFrame : a tabular data structure (pandas DataFrame - see below) that contains a column which contains a GeoSeries storing geometry.
 # Reminder : a pandas.DataFrame is a Two-dimensional, size-mutable, potentially heterogeneous tabular data.
 
-
-
-
-
-input("DEBUG : issue with the data file - trying to understand why - because with original data it works but not with my custom data...")
+# Data used as shapefile below - you can choose to use original or custom data by (un)commenting two lines below.
+#
+#
+# My custom version of the code - data without warning
 world = gpd.read_file(PATH_OF_WORLD_MAP)
 # Defining the equivalent key of 'cc3' from the data file (can be 'iso_a3' or 'ISO_A3' depending on it)
 matching_key = "ISO_A3"
-
+#
+#
 # Original code below (but creates a warning so corrected above
 #world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 # Defining the equivalent key of 'cc3' from the data file (can be 'iso_a3' or 'ISO_A3' depending on it)
 #matching_key = "iso_a3"
 
+# DEBUG case :
+# When using my custom data, compared to the original code, it created an error due to the 'dropna()' function that was present in the original code and therefore used in my 'map_term' function above (removed since then).
+# How did I debug it ?
+# If not mentionned, those values comes from my custom data - and not the model data as the later sends an error message...
+# In documentation of shapefiles
+# https://wiki.gis.com/wiki/index.php/Shapefile
+# I found that a 'prj' file describe the projection of the data in the shapefile
+# The content of my '/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/data/world_map_data/ne_10m_admin_0_countries.prj' file.
+"""
+GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
+"""
+# Tried to change the crs to 7030 : 
+#world.crs = "EPSG:7030" # results in this ERROR MESSAGE : pyproj.exceptions.CRSError: Invalid projection: EPSG:7030: (Internal Proj Error: proj_create: crs not found)
+#world = world.set_crs(epsg=7030, allow_override=True) # results in this ERROR MESSAGE : pyproj.exceptions.CRSError: Invalid projection: EPSG:7030: (Internal Proj Error: proj_create: crs not found)
+# But not working. If no modification is made, 
+# it sends error message about a geopandas file:
+"""
+File "/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/conda_venv/lib/python3.11/site-packages/geopandas/plotting.py", line 698, in plot_dataframe
+    ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
+"""
+# It printed the output of :
+"""
+1 / np.cos(y_coord * np.pi / 180) = nan
+np.cos(y_coord * np.pi / 180) = nan
+y_coord = nan
+np.pi = 3.141592653589793
+"""
+# So the issue seems to come from the value of 'y_coord'
+# I then checked a few values around the setting of 'y_coord'
+"""
+Reminder : df is a GeoDataFrame
+df.crs = EPSG:4326
+df.crs.is_geographic = True
+bounds = [nan nan nan nan]
+[bounds[1], bounds[3]] = [nan, nan]
+"""
+# So the issue comes from the bounds - why are they all set to 'nan' ?
+# When I print df, it gaves :
+"""
+Empty GeoDataFrame
+Columns: [featurecla, scalerank, LABELRANK, SOVEREIGNT, SOV_A3, ADM0_DIF, LEVEL, TYPE, TLC, ADMIN, ADM0_A3, GEOU_DIF, GEOUNIT, GU_A3, SU_DIF, SUBUNIT, SU_A3, BRK_DIFF, NAME, NAME_LONG, BRK_A3, BRK_NAME, BRK_GROUP, ABBREV, POSTAL, FORMAL_EN, FORMAL_FR, NAME_CIAWF, NOTE_ADM0, NOTE_BRK, NAME_SORT, NAME_ALT, MAPCOLOR7, MAPCOLOR8, MAPCOLOR9, MAPCOLOR13, POP_EST, POP_RANK, POP_YEAR, GDP_MD, GDP_YEAR, ECONOMY, INCOME_GRP, FIPS_10, ISO_A2, ISO_A2_EH, ISO_A3, ISO_A3_EH, ISO_N3, ISO_N3_EH, UN_A3, WB_A2, WB_A3, WOE_ID, WOE_ID_EH, WOE_NOTE, ADM0_ISO, ADM0_DIFF, ADM0_TLC, ADM0_A3_US, ADM0_A3_FR, ADM0_A3_RU, ADM0_A3_ES, ADM0_A3_CN, ADM0_A3_TW, ADM0_A3_IN, ADM0_A3_NP, ADM0_A3_PK, ADM0_A3_DE, ADM0_A3_GB, ADM0_A3_BR, ADM0_A3_IL, ADM0_A3_PS, ADM0_A3_SA, ADM0_A3_EG, ADM0_A3_MA, ADM0_A3_PT, ADM0_A3_AR, ADM0_A3_JP, ADM0_A3_KO, ADM0_A3_VN, ADM0_A3_TR, ADM0_A3_ID, ADM0_A3_PL, ADM0_A3_GR, ADM0_A3_IT, ADM0_A3_NL, ADM0_A3_SE, ADM0_A3_BD, ADM0_A3_UA, ADM0_A3_UN, ADM0_A3_WB, CONTINENT, REGION_UN, SUBREGION, REGION_WB, NAME_LEN, LONG_LEN, ABBREV_LEN, TINY, ...]
+Index: []
 
+[0 rows x 170 columns]
+"""
+# Why is it empty ? It should not be.
+# Because if I test with the data from the model, I get this kind of result while printing 'df'
+# To sumarise, last column title is the word and data always has 164 rows and - start with 7 column (including the 'word' column') and ends with (7+NUMBER_OF_WORD_REQUIRED-1) columns as ends results 
+"""
+         pop_est  ...    coffee
+0       889953.0  ...  0.415027
+1     58005463.0  ...  0.969494
+2       603253.0  ...  0.495734
+3     37589262.0  ...  0.210723
+4    328239523.0  ...  0.216337
+..           ...  ...       ...
+169   12626950.0  ...  0.884438
+170    3301000.0  ...  0.370356
+171    2083459.0  ...  0.222873
+172    6944975.0  ... -0.155929
+173     622137.0  ... -0.046268
 
+[164 rows x 7 columns]
+DEBUG df
+         pop_est  ...   cricket
+0       889953.0  ...  0.609271
+1     58005463.0  ...  0.268171
+2       603253.0  ...  0.077895
+3     37589262.0  ...  0.088765
+4    328239523.0  ...  0.031172
+..           ...  ...       ...
+169   12626950.0  ...  0.167514
+170    3301000.0  ... -0.007575
+171    2083459.0  ... -0.001917
+172    6944975.0  ...  0.092870
+173     622137.0  ...  0.022910
 
+[164 rows x 8 columns]
+DEBUG df
+         pop_est  ...     China
+0       889953.0  ...  0.423152
+1     58005463.0  ...  0.353667
+2       603253.0  ...  0.324381
+3     37589262.0  ...  0.378704
+4    328239523.0  ...  0.397792
+..           ...  ...       ...
+169   12626950.0  ...  0.313639
+170    3301000.0  ...  0.235566
+171    2083459.0  ...  0.310108
+172    6944975.0  ...  0.470871
+173     622137.0  ...  0.232920
+
+[164 rows x 9 columns]
+DEBUG df
+         pop_est  ...     vodka
+0       889953.0  ...  0.251874
+1     58005463.0  ...  0.076928
+2       603253.0  ... -0.177829
+3     37589262.0  ...  0.127661
+4    328239523.0  ...  0.091227
+..           ...  ...       ...
+169   12626950.0  ...  0.227413
+170    3301000.0  ...  0.375816
+171    2083459.0  ...  0.609926
+172    6944975.0  ...  0.446460
+173     622137.0  ...  0.414075
+
+[164 rows x 10 columns]
+DEBUG df
+         pop_est  ...     Pablo
+0       889953.0  ...  0.012344
+1     58005463.0  ... -0.051254
+2       603253.0  ...  0.372492
+3     37589262.0  ...  0.212796
+4    328239523.0  ...  0.120155
+..           ...  ...       ...
+169   12626950.0  ...  0.120950
+170    3301000.0  ...  0.099213
+171    2083459.0  ...  0.141281
+172    6944975.0  ...  0.197027
+173     622137.0  ... -0.008679
+
+[164 rows x 11 columns]
+DEBUG df
+
+"""
+# Why output is different ?
+# Is it because my custom data file cannot be modified (with new columns) ?
+# But why it is empty at the beggining ?
+# Currently trying to see if without dropna() in the above function map_term, it works.
+# Maybe, it is because of too much columns, all line has a NaN value so they are all dropped...
+# It was the case :
+# By replacing :
+# PLOT_ABOUT_TERM = world.dropna().plot(column=term, cmap='Blues')
+# by :
+# PLOT_ABOUT_TERM = world.plot(column=term, cmap='Blues')
+# removing the 'dropna()' part, it works with both data.
+# So in conclusion, the dropna() was removing the data because all lines of my custom data (of roughly columns) was containing at least one 'NaN' so all lines were removed.
 
 # Checking that the bounds from the model and from the GeoDataFrame (by default) are compatible
 # GeoDataFrame.total_bounds : returns a tuple containing minx, miny, maxx, maxy values for the bounds of the series as a whole.
@@ -459,16 +597,8 @@ print(world.total_bounds) # [-180.          -90.          180.           83.6341
 """
 EPSG Geodetic Parameter Dataset (also EPSG registry) is a public registry of geodetic datums, spatial reference systems, Earth ellipsoids, coordinate transformations and related units of measurement, originated by a member of the European Petroleum Survey Group (EPSG) in 1985. Each entity is assigned an EPSG code between 1024 and 32767,[1][2] along with a standard machine-readable well-known text (WKT) representation. The dataset is maintained by the IOGP Geomatics Committee.[3]
 """
-
-# DEBUG TO BE TESTED : epsg : 7030 
-world = world.set_crs('epsg:7030')
-
 # See also : https://spatialreference.org/ &  https://epsg.io/
 print(world.crs) # EPSG:4326 = bounds [-180.          -90.          180.           90.] = ok
-
-input("DEBUG EPSG AND CRS")
-
-
 
 # Printing data sample from 'world' map data file
 # GeoDataFrame.head([n]) : Return the first n rows.
@@ -508,8 +638,10 @@ for i in range(len(WORDS_LIST)):
 # Getting back to the dir before execution of script
 os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
 
-print("\n\nTO DO")
-print("To better understand the model : Run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb")
-print()
-input("\nDEBUG : above things to be processed before leaving the script\n")
+# To go for an extra mile
+print("\n\nTo better understand the word2vec model, you can run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb\n\n")
+
+# End message and exit without error
+print("\nScript finished !\n")
+sys.exit(0)
 
