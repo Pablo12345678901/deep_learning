@@ -129,7 +129,7 @@ def unzip_data_file(data_file_path, binary_true=False):
                     shutil.copyfileobj(file_in, file_out)
                     print("Binary file \"" + unzipped_file_basename + "\" located \"" + unzipped_file_path + "\" obtained after successfully unzipping !\n")
         else:
-            print("\nAn unzipped file with the name \"" + unzipped_file_basename + "\" located \"" + unzipped_file_path + "\" already exists.\nPlease remove/rename it and re-try after...\n")
+            print("\nAn unzipped file with the name \"" + unzipped_file_basename + "\" located \"" + unzipped_file_path + "\" already exists.\nIn case it is not wanted, please remove/rename it and re-try after...\n")
 
     # zip
     if file_extension == ".zip":

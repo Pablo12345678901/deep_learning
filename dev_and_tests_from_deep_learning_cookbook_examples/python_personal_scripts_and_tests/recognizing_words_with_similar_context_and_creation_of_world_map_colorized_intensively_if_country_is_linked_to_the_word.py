@@ -459,9 +459,17 @@ print(world.total_bounds) # [-180.          -90.          180.           83.6341
 """
 EPSG Geodetic Parameter Dataset (also EPSG registry) is a public registry of geodetic datums, spatial reference systems, Earth ellipsoids, coordinate transformations and related units of measurement, originated by a member of the European Petroleum Survey Group (EPSG) in 1985. Each entity is assigned an EPSG code between 1024 and 32767,[1][2] along with a standard machine-readable well-known text (WKT) representation. The dataset is maintained by the IOGP Geomatics Committee.[3]
 """
+
+# DEBUG TO BE TESTED : epsg : 7030 
+world = world.set_crs('epsg:7030')
+
 # See also : https://spatialreference.org/ &  https://epsg.io/
 print(world.crs) # EPSG:4326 = bounds [-180.          -90.          180.           90.] = ok
-      
+
+input("DEBUG EPSG AND CRS")
+
+
+
 # Printing data sample from 'world' map data file
 # GeoDataFrame.head([n]) : Return the first n rows.
 """
