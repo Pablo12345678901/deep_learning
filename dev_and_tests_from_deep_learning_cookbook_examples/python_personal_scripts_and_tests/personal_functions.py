@@ -40,7 +40,7 @@ def printing_list_elements(list):
 def print_dictionary_elements(dictionary, index=0):
     print("Index of dictionary : " + str(index))
     for key, value in dictionary.items():
-        print("Key : " + key + " / Value : " + str(value))
+        print("Key : " + str(key) + " / Value : " + str(value))
     print() # Esthetic
 
 def print_list_of_dictionaries(list_of_dictionaries):
