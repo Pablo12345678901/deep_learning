@@ -97,7 +97,7 @@ inverse_vocab_size = len(inverse_vocab)
 # Below : shows the dict = its content and its lenght
 if not FLAG_SILENT_TRUE:
     print("Dict 'inverse_vocab' : each index (=key) has an unique token (=value)")
-    print("The dict of tokens has a lenght of : " + str(inverse_vocab_size))
+    print("The dict of tokens has a lenght of : " + str(inverse_vocab_size) + "\n")
     personal_functions.print_dictionary_elements(inverse_vocab)
 
 # Vectorize the sentence by replacing all token use with their indexes
@@ -146,12 +146,12 @@ positive_skip_grams, labels_for_skip_grams = tf.keras.preprocessing.sequence.ski
       negative_samples=0)
 # Show the results returned by the function tf.keras.preprocessing.sequence.skipgrams
 if not FLAG_SILENT_TRUE:
-    print("Those are the skip grams (=couples of int) generated from the sentence :" + "\n" + repr(positive_skip_grams) + "\n") # return a list of couples with indexes of tokens
+    print("Those are the skip grams (=couples of int) generated from the sentence with a windows of " + str(window_size) + " words around the context word :" + "\n" + repr(positive_skip_grams) + "\n") # return a list of couples with indexes of tokens
 # Ex :[[3, 2], [2, 3], [4, 5], [1, 7], [5, 6], [3, 5], [5, 1], [3, 1], [1, 3], [1, 2], [1, 5], [4, 1], [1, 6], [7, 1], [6, 1], [5, 4], [6, 5], [3, 4], [6, 7], [2, 1], [1, 4], [7, 6], [5, 3], [4, 3], [4, 2], [2, 4]]
     # Printing what is the equivalent of each int couple translated in tokens.
     print("And those couples of int equivault to : ", "\nint couple", "/", "skip-gram")
     for target, context in positive_skip_grams[:]:
-        print(f"({target}, {context}) : ({inverse_vocab[target]}, {inverse_vocab[context]})")
+        print(f"[{target}, {context}] : [{inverse_vocab[target]}, {inverse_vocab[context]}]")
     print() # Esthetic
     print("The 'labels_for_skip_grams' list for each int couples can be ignored here because at this step, we did not use negative samples.\n" + repr(labels_for_skip_grams) + "\n") # [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     print("In total there are (lenght) :", len(positive_skip_grams), "skip grams in the 'positive_skip_grams' list.", "\n") # = 26
@@ -175,7 +175,7 @@ tf.constant(
 """
 CONSTANT_TENSOR = tf.constant(context_word, dtype="int64")
 if not FLAG_SILENT_TRUE:
-    print("Constant tensor : " + "\n" + str(CONSTANT_TENSOR) + "\n" + "created from tensor object : " + "\n" + str(context_word) + "\n")
+    print("Constant tensor : " + "\n" + str(CONSTANT_TENSOR) + " -> " + str(type(CONSTANT_TENSOR)) + "\n" + "created from tensor object : " + "\n" + str(context_word) + " -> " + str(type(context_word)) + "\n")
     
 """
 tf.reshape : Reshapes a tensor.
@@ -186,7 +186,7 @@ tf.reshape(
 """
 context_class = tf.reshape(CONSTANT_TENSOR, (1, 1))
 if not FLAG_SILENT_TRUE:
-    print("Context class generated from context word (=token index): " + "\n" + str(context_class) + "\n")
+    print("Context class generated from context word (=token index): " + "\n" + str(context_class) + " -> " + str(type(context_class)) + "\n")
     
 """
 tf.random.log_uniform_candidate_sampler returns 3 elements :
@@ -214,19 +214,19 @@ negative_sampling_candidates, true_expected_count_list, sampled_expected_count_l
 
 # Showing in details the negatives sampling candidates, their key value (int) and their equivalent if tokens
 if not FLAG_SILENT_TRUE:
-    print("Get negative sampling candidates from the context class :")
+    print("Get negative sampling candidates from the context class list composed of index objects:")
     personal_functions.printing_list_elements(negative_sampling_candidates)
-    print("Showing the index objects and their int value")
+    print("Showing the index objects of the 'negative_sampling_candidates' list and their int value obtained after being converted to numpy objects")
     list_of_indexes = []
     # Actually, here, the 'tf.Tensor' object is actually a 'EagerTensor' one.
     # So we have access to the 'numpy()' function which concerts it to a Numpy array (or one element if there is only one).
     for index in negative_sampling_candidates:
-        print("index object : " + str(index) + "\n" + "converted to a Numpy array (of one element) with index.numpy() : " + repr(index.numpy()) + " -> object type : " + str(type(index.numpy())) )
+        print("index object : \n" + str(index) + " -> " + str(type(index)) + "\n" + "converted to a Numpy array (of one element) with index.numpy() : \n" + repr(index.numpy()) + " -> object type : " + str(type(index.numpy())) )
         list_of_indexes.append(index.numpy())
     print() # Esthetic
     print("Showing what are the tokens equivalent to ", list_of_indexes)
     print([inverse_vocab[index.numpy()] for index in negative_sampling_candidates], "\n")
-    print("The positive class 'context_class' :" + "\n" + str(context_class) + "\n" + "represented by the int : " + str(context_word) + "\n" + "was expected to appear in average :" + "\n" + str(true_expected_count_list) + "\n") # See below
+    print("The positive class 'context_class' :" + "\n" + str(context_class) + "\n" + "represented by the int : " + str(context_word) + " -> " + str(type(context_word)) + "\n" + "was expected to appear in average :" + "\n" + str(true_expected_count_list) + " -> " + str(type(true_expected_count_list)) + "\n") # See below
     # For each of the 7 tokens from the sentence above, the results are :
     # 1 = [[0.6393995]
     # 2 = [0.5042367]
@@ -235,13 +235,34 @@ if not FLAG_SILENT_TRUE:
     # 5 = [0.30489868]
     # 6 = [0.26910767]
     # 7 = [0.24079101]
-    print("The samples candidates selected " + str(list_of_indexes) + " were expected to appear in average :" + "\n" + str(sampled_expected_count_list) + "\n")
+    print("The samples candidates selected " + str(list_of_indexes) + " were expected to appear in average :" + "\n" + str(sampled_expected_count_list) + " -> " + str(type(sampled_expected_count_list)) + "\n")
     
 ##############################################
 
 # Construct one training example
 
-# To be done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ##############################################
 
