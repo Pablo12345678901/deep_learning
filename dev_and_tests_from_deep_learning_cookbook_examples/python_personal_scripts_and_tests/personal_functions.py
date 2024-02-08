@@ -47,6 +47,9 @@ def print_list_of_dictionaries(list_of_dictionaries):
     for i in range(len(list_of_dictionaries)):
         print_dictionary_elements(list_of_dictionaries[i], i)
 
+def print_variable_information(object, object_name):
+    print(f"variable : " + str(object_name) + " / repr : " + repr(object) + "\n")
+        
 def print_sorted_list_of_dictionaries_by_a_key_value(list_of_dictionaries, value):
     newlist = sorted(list_of_dictionaries, key=itemgetter(value), reverse=False)
     print("\nList of dictionaries sorted by the value of the key " + value)
