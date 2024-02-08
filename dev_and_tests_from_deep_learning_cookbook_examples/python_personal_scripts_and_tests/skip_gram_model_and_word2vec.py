@@ -235,15 +235,78 @@ if not FLAG_SILENT_TRUE:
     # 5 = [0.30489868]
     # 6 = [0.26910767]
     # 7 = [0.24079101]
-    print("The samples candidates selected " + str(list_of_indexes) + " were expected to appear in average :" + "\n" + str(sampled_expected_count_list) + " -> " + str(type(sampled_expected_count_list)) + "\n")
+    print("The negative samples candidates selected " + str(list_of_indexes) + " were expected to appear in average :" + "\n" + str(sampled_expected_count_list) + " -> " + str(type(sampled_expected_count_list)) + "\n")
     
 ##############################################
 
 # Construct one training example
 
+# Reduce a dimension so you can use concatenation (in the next step).
+"""
+tf.squeeze : Removes dimensions of size 1 from the shape of a tensor.
 
+tf.squeeze(
+    input, axis=None, name=None
+)
+"""
+squeezed_context_class = tf.squeeze(context_class, 1)
+if not FLAG_SILENT_TRUE:
+    print("Created a new object class 'squeezed_context_class' from the 'context_class' one by reducing its dimensions to only one : ")
+    print("Before : ", end='')
+    personal_functions.print_variable_information(context_class, "context_class")
+    print("After  : ", end='')
+    personal_functions.print_variable_information(squeezed_context_class, "squeezed_context_class")
+    print() # Esthetic
 
+# Concatenate a positive context word with negative sampled words.
+"""
+tf.concat : Concatenates tensors along one dimension.
 
+tf.concat(
+    values, axis, name='concat'
+)
+"""
+context = tf.concat([squeezed_context_class, negative_sampling_candidates], 0)
+if not FLAG_SILENT_TRUE:
+    print("Concatenate the two objects 'squeezed_context_class' and 'negative_sampling_candidates' into a 'context' object.\nThis will give a list of objects with the first one representing the positive word in the context of the target and the next ones the negatives : ")
+    personal_functions.print_variable_information(context, "context")
+    print() # Esthetic
+
+# Label the first context word as `1` (positive) followed by `num_ns` `0`s (negative).
+# tf.constant : see above -> Creates a constant tensor from a tensor-like object.
+label = tf.constant([1] + [0]*num_of_negative_samples, dtype="int64")
+if not FLAG_SILENT_TRUE:
+    print("Create a 'label' object containing a list of int - the first one is 1 (positive label) followed by 'num_of_negative_samples' " + str(num_of_negative_samples) + " times '0' (negative label) : ")
+    personal_functions.print_variable_information(object=label, object_name="label")
+    print() # Esthetic
+
+target = target_word
+if not FLAG_SILENT_TRUE:
+    print("Set the 'target' " + str(target) + " as per the 'target_word' " + str(target_word) + ".\n")
+    # Some usefull info
+    print(f"sentence        : {sentence}")
+    print(f"target_index    : {target}")
+    print(f"target_word     : {inverse_vocab[target_word]}")
+    print(f"window size     : {window_size}")
+    print(f"context_indices : {context}")
+    print(f"context_words   : {[inverse_vocab[c.numpy()] for c in context]}")
+    print(f"label           : {label}")
+    print(f"\nTo summarize, the context word '{inverse_vocab[context[0].numpy()]}' with token index {context_word} is in the context of the target word '{inverse_vocab[target_word]}' with token index {target} and the negative sampling candidates randomly taken (so should theorically but this is not certain) not to be in the context were {[inverse_vocab[c.numpy()] for c in context[1:]]}.\n")
+
+"""
+A tuple of (target, context, label) tensors constitutes one training example for training your skip-gram negative sampling word2vec model.
+
+Notice that the target is of shape (1,) while the context and label are of shape (1+num_of_negative_samples,)
+"""
+if not FLAG_SILENT_TRUE:
+    print("A tuple of (target, context, label) tensors constitutes one training example for training your skip-gram negative sampling word2vec model.\nNotice that the target is of shape (1,) while the context and label are of shape (1+num_ns,)")
+    print("\nExample of a tuple of sensors :")
+    print("target  :", target)
+    print("context :", context)
+    print("label   :", label)
+    print() # Esthetic
+    
+##############################################
 
 
 
@@ -270,7 +333,7 @@ if not FLAG_SILENT_TRUE:
 print("\n\n\nDEBUG AND REMARKS TO MYSELF WHILE DEVELOPPING")
 print("\t- What is 'AUTOTUNE' (line 57) and why set it to '-1' ?")
 print("##################################################")
-print("OK")
+print("Read the 'Summary' part of first block and then continue...")
 print("##################################################")
 print("TO GO FURTHER")
 print("\t- If needed : see other detailed explanation of skip gram model here :" + "\n" + "\thttps://medium.com/@corymaklin/word2vec-skip-gram-904775613b4c")
