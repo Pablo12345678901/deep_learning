@@ -308,7 +308,9 @@ if not FLAG_SILENT_TRUE:
     
 ##############################################
 
+# Compile all steps into one function
 
+# To be done
 
 
 
@@ -333,7 +335,7 @@ if not FLAG_SILENT_TRUE:
 print("\n\n\nDEBUG AND REMARKS TO MYSELF WHILE DEVELOPPING")
 print("\t- What is 'AUTOTUNE' (line 57) and why set it to '-1' ?")
 print("##################################################")
-print("Read the 'Summary' part of first block and then continue...")
+print("OK")
 print("##################################################")
 print("TO GO FURTHER")
 print("\t- If needed : see other detailed explanation of skip gram model here :" + "\n" + "\thttps://medium.com/@corymaklin/word2vec-skip-gram-904775613b4c")
