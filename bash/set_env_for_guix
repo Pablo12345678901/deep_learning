@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+source fonctions_personnelles
+
+echo "DEBUG : script in dev"
+exit 0
+
+PYTHON_DEV_PROFILE="${REPERTOIRE_BUREAU}/opt/python-dev"
+
+# Unset the env
+if [ ! -z "$OLD_GUIX_PROFILE" ]
+then
+    # Conserve old provide to reset it
+    export OLD_GUIX_PROFILE="$GUIX_PROFILE"
+    export GUIX_PROFILE="$PYTHON_DEV_PROFILE"
+    echo -e "\nThe Guix profile for Python development was set. You have to source it with :\n. \"$GUIX_PROFILE/etc/profile\"\n"
+else
+    # Set the guix profile to usual value
+    export GUIX_PROFILE="$OLD_GUIX_PROFILE"
+    echo -e "\nThe usual Guix profile (not for development) was set. You have to source it with :\n. \"$GUIX_PROFILE/etc/profile\"\n"
+    # Remove the value
+    export OLD_GUIX_PROFILE=
+fi

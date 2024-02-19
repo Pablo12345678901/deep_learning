@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+source fonctions_personnelles
+
+# Ce script configure/affiche un environnement virtuel Python pour Guix
+# avec un path PREFIX_PATH dans lequel seront installés les packages pip
+# pour l'environnement en question
+
+function afficher_environnement {
+	echo "PYTHONHASH=$PYTHONHASH; "
+	echo "PYTHONVERSION=$PYTHONVERSION; "
+	echo "PREFIX_PATH=$PREFIX_PATH; "
+	echo "PYTHONPATH=$PYTHONPATH; "
+	echo "PYTHONENVLOCALPATHINSTALLATIONPIP=$PYTHONENVLOCALPATHINSTALLATIONPIP; "
+	echo "PATH=$PATH; "
+	echo "" # esthétique
+}
+
+# Obtient le path local de Python3
+PYTHONBIN="$(readlink -f `which python3`)"
+# Récupère le hash de ce path
+PYTHONHASH="$(basename $(dirname $(dirname $PYTHONBIN)))"
+
+# Calcul des valeurs des variables
+PYTHONVERSION="$(echo $PYTHONHASH | cut -d '-' -f 2- | tr -d '-' | cut -d '.' -f 1-2)"
+PREFIX_PATH="$HOME/.python_guix/$PYTHONHASH"
+PATH="$PREFIX_PATH/bin:$PATH"
+PYTHONPATH="$PREFIX_PATH/lib/${PYTHONVERSION}/site-packages:$PYTHONPATH"
+PYTHONENVLOCALPATHINSTALLATIONPIP="${PREFIX_PATH}/lib/${PYTHONVERSION}/site-packages"
+
+
+# Choix si création / affichage
+declare -a TABLEAU_D_OPTIONS
+TABLEAU_D_OPTIONS+=("Afficher environnement théorique")
+TABLEAU_D_OPTIONS+=("Création environnement / clean si existant")
+CHOIX_UTILISATEUR=""
+MESSAGE_AFFICHE="\nQue voulez-vous faire ?\n"
+OPTION_POUR_ARRETER="Quitter"
+select_parmi_liste TABLEAU_D_OPTIONS CHOIX_UTILISATEUR "$MESSAGE_AFFICHE" "$OPTION_POUR_ARRETER" 
+
+case "$CHOIX_UTILISATEUR" in
+    "Afficher environnement théorique")
+	echo -e "\nAffichage de l'environnement théorique :\n"
+	afficher_environnement # affichage des variables liées à l'env. python
+	exit 0
+    ;;
+    "Création environnement / clean si existant")
+	: # le script continue
+	;;
+    "Quitter")
+        exit 0
+        ;;
+    *)
+	 echo "ERREUR dans le case"
+	 exit 1
+	 ;;
+esac
+
+# Création d'un environnement vide
+# Nettoyage de l'environnement = suppression de tout
+echo -e "\nCréation d'un environnement + clean si existant..."
+{ rm -rf "$PYTHONENVLOCALPATHINSTALLATIONPIP"/*
+} ||
+    { STDERR_afficher_message "ECHEC lors de la création / clean. Veuillez le faire manuellement ou debugguer" &&
+	  exit 1
+      }
+
+# Affichage + consigne de set l'environnement
+echo -e "\nVeuillez configurer l'environnement virtuel en définissant les variables suivantes :\n"
+afficher_environnement # affichage des variables liées à l'env. python
+
+# Consigne d'utilisation
+COMMANDE_INSTALLATION_PACKAGE='pip3 install --prefix="$PREFIX_PATH" package_name'
+echo -e "Commande pour installer un package dans l'environnement virtuel :\n$COMMANDE_INSTALLATION_PACKAGE\n"
+echo -e "Et vos packages installés par pip seront situés :\n$PYTHONENVLOCALPATHINSTALLATIONPIP\ncf variables d'environnement \$PYTHONENVLOCALPATHINSTALLATIONPIP"
