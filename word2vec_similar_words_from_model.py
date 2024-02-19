@@ -1,4 +1,5 @@
 import os
+import sys # For sys.exit(EXIT_CODE)
 from keras.utils import get_file
 import gensim
 import subprocess
@@ -22,15 +23,21 @@ print("\n\nFirst part of the script: \nLoading the word2vec model from a gzip fi
 
 MODEL = 'GoogleNews-vectors-negative300.bin'
 
-# Manually downloaded the gzip file as other available are corrupted
-# And as the official one on the Google Drive can not be download with
-# GET request, only with POST request
-# and no idea of the parameters required... 
-path = "/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/data" + "/" + MODEL + ".gz"
-
 # Creating dir if not existing
 if not os.path.isdir('data'):
     os.mkdir('data')
+
+# Instead of getting the data with a get request HERE,
+# manually downloaded the gzip file as other available are corrupted
+# and as the official one on the Google Drive can not be download with
+# GET request, only with POST request
+# and no idea of the parameters required...
+
+# Dynamic adaptation of the data path from the path of the script
+# The data should be in the dir relatively located ./data
+PATH_OF_SCRIPT = os.path.realpath(__file__)
+DIR_OF_SCRIPT = os.path.dirname(PATH_OF_SCRIPT)
+path = DIR_OF_SCRIPT + "/" + "data" + "/" + MODEL + ".gz"
 
 # Get name of future unzipped file
 unzipped = os.path.join('data', MODEL)
