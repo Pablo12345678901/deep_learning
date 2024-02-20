@@ -1,3 +1,4 @@
 # Not tracking data ressources and virtual env
 #
 data/
+conda_venv/
