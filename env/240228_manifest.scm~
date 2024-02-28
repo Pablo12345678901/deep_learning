@@ -13,6 +13,7 @@
  (srfi srfi-1)
 )
 
+;; My channels : content copied/pasted from the original file located ~/.config/guix/channels.scm
 (define channels
  (cons*
 ;;#!
@@ -44,21 +45,25 @@
  %default-channels
 ))
 
+;; When combined with channels (see Channels), inferiors provide a simple way to interact with a separate revision of Guix. 
 (define inferior
+  ;; An inferior representing the above revision.
   (inferior-for-channels channels))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Package list
-
-
 (concatenate-manifests
  (list
+
   ;; Packages from above custom channels 
   (packages->manifest
    (list
     (first (lookup-inferior-packages inferior "my-micromamba"))
+    ;;(first (lookup-inferior-packages inferior "my-python-gdal")) ;; Missing 
+    (first (lookup-inferior-packages inferior "my-python-gensim"))
   ))
+
   ;; Other packages
   (specifications->manifest
    (list
@@ -71,8 +76,11 @@
     "python-keras"
     "python-numpy"
     "python-pip"
+    ;;"python-protobuf"
+    "python-scikit-learn"
     "python-scipy"
+    "python-tqdm"
     "tensorflow"
   ))
- )x
+ )
 )
