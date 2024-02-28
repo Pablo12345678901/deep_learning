@@ -59,8 +59,6 @@
   ;; Packages from above custom channels 
   (packages->manifest
    (list
-    (first (lookup-inferior-packages inferior "my-micromamba"))
-    ;;(first (lookup-inferior-packages inferior "my-python-gdal")) ;; Missing 
     (first (lookup-inferior-packages inferior "my-python-gensim"))
   ))
 
@@ -71,7 +69,7 @@
     "bash-completion" ;; for double tab to show possibilities
     "coreutils" ;; for 'ls'
     "findutils" ;; for 'find'
-    "gdal" ;; TEST 240228 for python osgeo module
+    "gdal" ;; for the python osgeo module
     "grep"
     "guix"
     "less"
@@ -80,11 +78,10 @@
     "python-keras"
     "python-numpy"
     "python-pip"
-    ;;"python-protobuf"
     "python-scikit-learn"
     "python-scipy"
     "python-tqdm"
-    "tensorflow"
+    "tensorflow" ;; To be updated to resolve the 'protobuf'.
   ))
  )
 )
