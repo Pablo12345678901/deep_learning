@@ -1,0 +1,10 @@
+Here are the sources of the data to be placed into the 'data' directory for the scripts to work.
+
+Word2vec model :
+- from : https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?resourcekey=0-wjGZdNAUop6WykTtMip30g
+- download : Manually and place it into the 'data' directory.
+- name : GoogleNews-vectors-negative300.bin
+
+Countries :
+- from : https://www.naturalearthdata.com/downloads/10m-cultural-vectors/
+- download : from link : https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries.zip

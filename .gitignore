@@ -1,4 +1,5 @@
-# Not tracking data ressources and virtual env
-#
-data/
-conda_venv/
+# Not tracking data ressources
+data/*
+
+# Except the list of the data sources in order to enable re-download from any environment.
+!data/data_sources.txt
