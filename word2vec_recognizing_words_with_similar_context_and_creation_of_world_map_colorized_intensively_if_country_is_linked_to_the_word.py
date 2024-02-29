@@ -177,8 +177,6 @@ BASENAME_OF_SCRIPT = os.path.basename(PATH_OF_SCRIPT)
 DIR_OF_SCRIPT = os.path.dirname(PATH_OF_SCRIPT)
 # Changing dir to the script one
 os.chdir(DIR_OF_SCRIPT)
-# Getting one level up
-os.chdir('..')
 DIR_OF_PROJECT = os.getcwd()
 
 #####################################################
