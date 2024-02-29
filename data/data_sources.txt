@@ -1,5 +1,10 @@
 Here are the sources of the data to be placed into the 'data' directory for the scripts to work.
 
+Miscellaneous data from the author of the deep learning cookbook :
+- from : https://github.com/DOsinga/deep_learning_cookbook
+- download : copy/paste the below command in your terminal and replace the data directory path by yours :
+git clone https://github.com/DOsinga/deep_learning_cookbook && cp -t THE-DATA-DIR-FROM-THIS-REPO-NOT-THE-ONE-FROM-THE-AUTHOR-REPO deep_learning_cookbook/data/*
+
 Word2vec model :
 - from : https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?resourcekey=0-wjGZdNAUop6WykTtMip30g
 - download : Manually and place it into the 'data' directory.
