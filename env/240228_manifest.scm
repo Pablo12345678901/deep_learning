@@ -59,8 +59,8 @@
   ;; Packages from above custom channels 
   (packages->manifest
    (list
-    (first (lookup-inferior-packages inferior "my-python-gensim"))
-    ;;(first (lookup-inferior-packages inferior "my-python-tensorflow"))
+    (first (lookup-inferior-packages inferior "my-python-gensim")) ;; gensim = required / dependency issue with python-scipy regarding python-numpy = v1.10.1 or 1.23.2 ?
+    (first (lookup-inferior-packages inferior "my-python-tensorflow")) ;; tensorflow = required but which one ? the tensorflow or this one. If 'tensorflow' so other dependencies should be updated.
   ))
 
   ;; Other packages
@@ -77,12 +77,12 @@
     "python"
     "python-geopandas"
     "python-keras"
-    "python-numpy"
+    "python-numpy" ;; Required version 1.26.4
     "python-pip"
     "python-scikit-learn"
     "python-scipy"
     "python-tqdm"
-    "tensorflow"
+    ;;"tensorflow"
   ))
  )
 )
