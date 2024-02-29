@@ -60,6 +60,7 @@
   (packages->manifest
    (list
     (first (lookup-inferior-packages inferior "my-python-gensim"))
+    ;;(first (lookup-inferior-packages inferior "my-python-tensorflow"))
   ))
 
   ;; Other packages
@@ -81,7 +82,7 @@
     "python-scikit-learn"
     "python-scipy"
     "python-tqdm"
-    "tensorflow" ;; To be updated to resolve the 'protobuf'.
+    "tensorflow"
   ))
  )
 )
