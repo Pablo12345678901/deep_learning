@@ -17,42 +17,45 @@ import gzip
 # To randomly shuffle a list
 import random
 
+import personal_functions # my personal functions
+
+#####################################################
+
+# Conserving the current dir before script was executed
+# For returning to it at the script end
+CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT = os.getcwd()
+# Changing dir to the script environment
+PATH_OF_SCRIPT = os.path.realpath(__file__)
+BASENAME_OF_SCRIPT = os.path.basename(PATH_OF_SCRIPT)
+DIR_OF_SCRIPT = os.path.dirname(PATH_OF_SCRIPT)
+# Changing dir to the script one
+os.chdir(DIR_OF_SCRIPT)
+DIR_OF_PROJECT = os.getcwd()
+
 ################################################################
 print("\n\nFirst part of the script: \nLoading the word2vec model from a gzip file.\n\n")
 ################################################################
 
 MODEL = 'GoogleNews-vectors-negative300.bin'
 
-# Creating dir if not existing
-if not os.path.isdir('data'):
-    os.mkdir('data')
-
-# Instead of getting the data with a get request HERE,
-# manually downloaded the gzip file as other available are corrupted
-# and as the official one on the Google Drive can not be download with
+# Manually downloaded the gzip file as other available are corrupted
+# And as the official one on the Google Drive can not be download with
 # GET request, only with POST request
 # and no idea of the parameters required...
+DATA_DIR = DIR_OF_PROJECT + "/" + "data" 
+path = DATA_DIR + "/" + MODEL + ".gz"
 
-# Dynamic adaptation of the data path from the path of the script
-# The data should be in the dir relatively located ./data
-PATH_OF_SCRIPT = os.path.realpath(__file__)
-DIR_OF_SCRIPT = os.path.dirname(PATH_OF_SCRIPT)
-path = DIR_OF_SCRIPT + "/" + "data" + "/" + MODEL + ".gz"
+# Create data dir if not yet existing
+personal_functions.create_dir_if_not_existing(DATA_DIR)
 
-# Get name of future unzipped file
-unzipped = os.path.join('data', MODEL)
-
-# If future unzipped file is not existing yet - unzipping from file downloaded above
-if not os.path.isfile(unzipped):
-    with gzip.open(path, 'rb') as file_in:
-        with open(unzipped, 'wb') as file_out:
-            print("\nUnzipping the binary file located on path \"" + path + "\"")
-            shutil.copyfileobj(file_in, file_out)
-            print("Binary file obtained after successfully unzipping !\n")
-
+# Unzipping the model dir (if not yet done) and getting its name
+unzipped_model_dir = personal_functions.unzip_data_file(path, binary_true=True)
+# Get the name of the model unzipped file
+unzipped_model_path = unzipped_model_dir + "/" + MODEL
+   
 # Model loading
 print("\nLoading the word2vec model...")
-model = gensim.models.KeyedVectors.load_word2vec_format(unzipped, binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format(unzipped_model_path, binary=True)
 print("Finished to load the word2vec model !\n")
 
 ############################################################################
@@ -217,4 +220,14 @@ for item, x1, y1 in zip(item_vectors, x, y):
 # Show plot graphic
 # This plot shows the groups between words on similar thematic.
 plt.show()
+
+# Getting back to the dir before execution of script
+os.chdir(CURRENT_DIR_AT_THE_BEGGINING_OF_SCRIPT)
+
+# To go for an extra mile
+print("\n\nTo better understand the word2vec model, you can run the original model to train from words - see favorite : website : https://colab.research.google.com/github/tensorflow/text/blob/master/docs/tutorials/word2vec.ipynb\n\n")
+
+# End message and exit without error
+print("\nScript finished !\n")
+sys.exit(0)
 
