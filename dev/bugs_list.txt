@@ -1,0 +1,38 @@
+date : 01.03.2024
+file : word2vec_similar_words_from_model.py
+error message : 
+[t-SNE] Computing 17 nearest neighbors...
+[t-SNE] Indexed 18 samples in 0.007s...
+~/.local/lib/python3.10/site-packages/threadpoolctl.py:1195: RuntimeWarning: libc not found. The ctypes module in Python 3.10 is maybe too old for this OS.
+  warnings.warn(
+[t-SNE] Computed neighbors for 18 samples in 2.896s...
+[t-SNE] Computed conditional probabilities for sample 18 / 18
+[t-SNE] Mean sigma: 0.581543
+[t-SNE] Computed conditional probabilities in 0.018s
+[t-SNE] Iteration 50: error = 49.9008522, gradient norm = 0.4761812 (50 iterations in 0.030s)
+[t-SNE] Iteration 100: error = 53.2350006, gradient norm = 0.7055457 (50 iterations in 0.010s)
+[t-SNE] Iteration 150: error = 46.2068672, gradient norm = 0.6808769 (50 iterations in 0.006s)
+[t-SNE] Iteration 200: error = 49.5468140, gradient norm = 0.6060987 (50 iterations in 0.007s)
+[t-SNE] Iteration 250: error = 51.3527832, gradient norm = 0.6371540 (50 iterations in 0.005s)
+[t-SNE] KL divergence after 250 iterations with early exaggeration: 51.352783
+[t-SNE] Iteration 300: error = 0.6283597, gradient norm = 0.0073195 (50 iterations in 0.011s)
+[t-SNE] Iteration 350: error = 0.2249334, gradient norm = 0.0160586 (50 iterations in 0.007s)
+[t-SNE] Iteration 400: error = 0.1111432, gradient norm = 0.0022006 (50 iterations in 0.005s)
+[t-SNE] Iteration 450: error = 0.1014042, gradient norm = 0.0015796 (50 iterations in 0.007s)
+[t-SNE] Iteration 500: error = 0.1002880, gradient norm = 0.0012031 (50 iterations in 0.006s)
+[t-SNE] Iteration 550: error = 0.0985197, gradient norm = 0.0017201 (50 iterations in 0.005s)
+[t-SNE] Iteration 600: error = 0.0956914, gradient norm = 0.0012252 (50 iterations in 0.007s)
+[t-SNE] Iteration 650: error = 0.0963530, gradient norm = 0.0011663 (50 iterations in 0.005s)
+[t-SNE] Iteration 700: error = 0.0976038, gradient norm = 0.0003963 (50 iterations in 0.006s)
+[t-SNE] Iteration 750: error = 0.0974622, gradient norm = 0.0006292 (50 iterations in 0.006s)
+[t-SNE] Iteration 800: error = 0.0974702, gradient norm = 0.0022215 (50 iterations in 0.005s)
+[t-SNE] Iteration 850: error = 0.0971758, gradient norm = 0.0013336 (50 iterations in 0.005s)
+[t-SNE] Iteration 900: error = 0.0965064, gradient norm = 0.0011895 (50 iterations in 0.008s)
+[t-SNE] Iteration 950: error = 0.0956996, gradient norm = 0.0012238 (50 iterations in 0.005s)
+[t-SNE] Iteration 950: did not make any progress during the last 300 episodes. Finished.
+[t-SNE] KL divergence after 950 iterations: 0.095700
+~/Desktop/dev/deep_learning/word2vec_similar_words_from_model.py:219: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+
+==============================================================
+
