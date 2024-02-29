@@ -18,9 +18,9 @@ elif len(sys.argv) > 2:
 # Shapefile is provided as first argument to script
 daShapefile = sys.argv[1]
 # Two shapefile to compare :
-# 1. '/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/conda_venv/lib/python3.11/site-packages/geopandas/datasets/naturalearth_lowres/naturalearth_lowres.shp'
+# 1. 'PIP-PACKAGE-LOCATION/site-packages/geopandas/datasets/naturalearth_lowres/naturalearth_lowres.shp' 
 #
-# 2. '/home/incognito/Desktop/developpement/deep_learning/dev_and_tests_from_deep_learning_cookbook_examples/data/world_map_data/ne_10m_admin_0_countries.shp'
+# 2. 'THE-REPO-OF-THIS-SCRIPT/data/world_map_data/ne_10m_admin_0_countries.shp'
 
 
 # Check if the file exists - else exit with error
