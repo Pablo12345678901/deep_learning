@@ -25,13 +25,13 @@
 ;; 3. Remove the pip packages that are not compatible with Guix :
 ;; (Refer to the list of Guix packages below)
 #!
-    pip3 uninstall numpy gdal TO-BE-ADAPTED...
+    pip3 uninstall numpy GDAL threadpoolctl
 !#
 
 ;; 4. Re-install those packages with guix :
 ;; (Refer to the list of Guix packages below)
 #!
-    guix package -i python-numpy gdal TO-BE-ADAPTED...
+    guix package -i python-numpy gdal python-threadpoolctl
 !#
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,6 +127,7 @@
     "gdal" ;; For the osgeo module
     "python-numpy" ;; Required for Guix
     "python-pip" ;; Required for Guix
+    "python-threadpoolctl" ;; Required for Guix
   ))
     
 #!
