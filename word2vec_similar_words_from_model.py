@@ -4,6 +4,8 @@ from keras.utils import get_file
 import gensim
 import subprocess
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg') # set for the interractive showing of plots
 import matplotlib.pyplot as plt
 from IPython.core.pylabtools import figsize
 figsize(10, 10)
