@@ -1,14 +1,16 @@
 ;; Steps to set the virtual environment with the Guix package manager:
 
 ;; 1. Run the below command :
+;; Replace '$HOME' by your own absolute home path within the below command.
 #!
-    guix shell --container --network -m THIS-MANIFEST.scm --share=~/.cache --share=/var/guix/daemon-socket/socket
+    guix shell --container --network --preserve='^DISPLAY$' -m THIS-MANIFEST.scm --share=$HOME/.cache --share=/var/guix/daemon-socket/socket
 !#
 ;; Detailed explanation of the above command :
 ;;    guix shell : create a shell
-;;    --container : spawn a container isolated from the rest of the system. It does not know other than itself.
+;;    --container : spawn a container isolated from the rest of the system. It does not know other than itself. Furthermore, unset all environment variables.
 ;;    --network : with a network access (container by default has not)
 ;;    -m : download, build and provides to the shell the packages defined in the manifest.
+;;    --preserve : preserve an environment variable. Else would be unset by '--container'. Here, preserve the display to show things on screen.
 ;;    --share : give to the container an access to a directory
 ;;        Here gives access to :
 ;;        - the cache to download pip packages (else it shows a 'not enough space' ERROR)
@@ -31,7 +33,7 @@
 ;; 4. Re-install those packages with guix :
 ;; (Refer to the list of Guix packages below)
 #!
-    guix package -i python-numpy gdal python-threadpoolctl
+    guix package -i gdal python-numpy python-threadpoolctl
 !#
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -122,12 +124,13 @@
    (list
     ;; Python version
     "python" ;; v3.*
+    "python:tk" ;; For 'tkinter' module within Python
     ;;; Specific Python packages for which the pip version does not works with Guix
     ;; So a Guix package build is required.
     "gdal" ;; For the osgeo module
-    "python-numpy" ;; Required for Guix
-    "python-pip" ;; Required for Guix
-    "python-threadpoolctl" ;; Required for Guix
+    "python-numpy"
+    "python-pip"
+    "python-threadpoolctl"
   ))
     
 #!
