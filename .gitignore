@@ -1,9 +1,12 @@
-# Not tracking data ressources
+# Not tracking directories :
 data/*
+dev/*
+
+# Except those files.
+!data/data_sources.txt
+!dev/bugs_list.txt
 
 # Neither temporary files from emacs
 *~*
 *#*
 
-# Except the list of the data sources in order to enable re-download from any environment.
-!data/data_sources.txt
