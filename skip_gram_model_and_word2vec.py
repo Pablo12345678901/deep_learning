@@ -30,21 +30,27 @@ FLAG_SILENT_TRUE = False
 
 # Manage options provided to the script
 MAXIMUM_ARGUMENT_NUMBER = 1
-# Check if one argument was provided
+
+# Compute number of arguments provided to the script
 NUMBER_OF_PROVIDED_ARGUMENTS = len(sys.argv) - 1 # -1 because arg[0] = script name
+
+# Check the argument(s) provided
 # Reminder :
 #    sys.argv[0] = name of the script
 #    sys.argv[1] = first argument ... and so on
-if NUMBER_OF_PROVIDED_ARGUMENTS == 1:
+if NUMBER_OF_PROVIDED_ARGUMENTS == MAXIMUM_ARGUMENT_NUMBER:
     ARGUMENT_PROVIDED = str(sys.argv[1])
+    # Set the flag of silent/verbose depending on the argument provided
     if ARGUMENT_PROVIDED == "--silent": 
         FLAG_SILENT_TRUE = True
     elif ARGUMENT_PROVIDED == "--verbose":
         FLAG_SILENT_TRUE = False
     else:
+        # If the argument is not the expected one, exit with error
         print("\nERROR : unknown argument provided : " + ARGUMENT_PROVIDED + ".\n")
         sys.exit(1)
 elif NUMBER_OF_PROVIDED_ARGUMENTS > MAXIMUM_ARGUMENT_NUMBER:
+    # If too many arguments were provided, exit with error
     print("\nERROR : too many arguments provided : " + str(sys.argv[1:]) + ".\n")
     sys.exit(2)
 
@@ -53,7 +59,11 @@ elif NUMBER_OF_PROVIDED_ARGUMENTS > MAXIMUM_ARGUMENT_NUMBER:
 # Setup
 # Set the random seed
 SEED = 42
-# tf.data : an API that enables to build complex input pipelines from simple, reusable pieces. 
+
+# tf.data : an API that enables to build complex input pipelines from simple, reusable pieces.
+# tf.data.AUTOTUNE : use tensorflow capacity to compute the processing time at each step while processing the input in order to optimize the pipeline while using this output (providing a better CPU usage) - more fluent.
+# See : https://www.tensorflow.org/api_docs/python/tf/data#AUTOTUNE
+# See : https://stackoverflow.com/questions/56613155/tensorflow-tf-data-autotune
 AUTOTUNE = tf.data.AUTOTUNE # = -1
 
 ##############################################
@@ -61,10 +71,12 @@ AUTOTUNE = tf.data.AUTOTUNE # = -1
 # Vectorize an example sentence
 sentence = "The wide road shimmered in the hot sun"
 # Below sentence : shows that token can contains the char "'" and does not split 'I'm' into token[0]='I' and token[1]='m'  
-#sentence = "I'm the king of my wife's dog."
+#sentence = "I'm the king of my wife's dog." # Another sentence for tests.
+
 # Split (with the space char) the sentence into a 'tokens' list.
 # And lower all chars - no difference between 'The', 'the' - both consideredas 'the'
 tokens = list(sentence.lower().split())
+
 # Show the lenght of the 'tokens' list and its content, index per index
 if not FLAG_SILENT_TRUE:
     print("\nValue of the 'tokens' list")
@@ -74,18 +86,20 @@ if not FLAG_SILENT_TRUE:
 vocab, index = {}, 0
 # Add a padding token with value 0 because the token of index 0 will be skipped by the tf.keras.preprocessing.sequence.skipgrams function.
 vocab['<pad>'] = index
-# Increase the index each time a key is added into the dict
-# That way, all (unique) keys have a unique index as as unique identifier
-index += 1
+
 # Add all tokens into the dict
 for token in tokens:
   if token not in vocab:
-    vocab[token] = index
+    # Increase the index each time a key is added into the dict
+    # That way, all (unique) keys have a unique index as identifier
     index += 1
+    vocab[token] = index
+    
 
 # Get the number of keys in the dict
 vocab_size = len(vocab)
-# Below : shows the dict = its content and its lenght
+
+# Shows the dict = its content and its lenght
 if not FLAG_SILENT_TRUE:
     print("Dict 'vocab' : each token (=key) has an unique index (=value)")
     print("The dict of tokens has a lenght of : " + str(vocab_size) + "\n")
@@ -94,7 +108,8 @@ if not FLAG_SILENT_TRUE:
 # Create an inverse dict with indexes as keys and tokens as keys values
 inverse_vocab = {index: token for token, index in vocab.items()}
 inverse_vocab_size = len(inverse_vocab)
-# Below : shows the dict = its content and its lenght
+
+# Shows the dict = its content and its lenght
 if not FLAG_SILENT_TRUE:
     print("Dict 'inverse_vocab' : each index (=key) has an unique token (=value)")
     print("The dict of tokens has a lenght of : " + str(inverse_vocab_size) + "\n")
@@ -102,6 +117,7 @@ if not FLAG_SILENT_TRUE:
 
 # Vectorize the sentence by replacing all token use with their indexes
 example_sequence = [vocab[word] for word in tokens]
+
 # Show the vector created
 if not FLAG_SILENT_TRUE:
     print("Printing the equivalence of the sentence : '" + sentence + "' when vectorized by replacing each token by its key value.", "\n")
@@ -114,7 +130,9 @@ if not FLAG_SILENT_TRUE:
 
 # Generate skip-grams from one sentence
 
+# Set the number of words taken around the current one to create pairs.
 window_size = 2
+
 # tf.keras.preprocessing.sequence module provides useful functions that simplify data preparation for word2vec.
 # tf.keras.preprocessing.sequence.skipgrams : Generates skipgram word pairs.
 """
@@ -144,6 +162,7 @@ positive_skip_grams, labels_for_skip_grams = tf.keras.preprocessing.sequence.ski
       vocabulary_size=vocab_size,
       window_size=window_size,
       negative_samples=0)
+
 # Show the results returned by the function tf.keras.preprocessing.sequence.skipgrams
 if not FLAG_SILENT_TRUE:
     print("Those are the skip grams (=couples of int) generated from the sentence with a windows of " + str(window_size) + " words around the context word :" + "\n" + repr(positive_skip_grams) + "\n") # return a list of couples with indexes of tokens
@@ -174,6 +193,8 @@ tf.constant(
 ) -> Union[tf.Operation, ops._EagerTensorBase]
 """
 CONSTANT_TENSOR = tf.constant(context_word, dtype="int64")
+
+# Show content of the 'constant tensor'
 if not FLAG_SILENT_TRUE:
     print("Constant tensor : " + "\n" + str(CONSTANT_TENSOR) + " -> " + str(type(CONSTANT_TENSOR)) + "\n" + "created from tensor object : " + "\n" + str(context_word) + " -> " + str(type(context_word)) + "\n")
     
@@ -185,6 +206,8 @@ tf.reshape(
 )
 """
 context_class = tf.reshape(CONSTANT_TENSOR, (1, 1))
+
+# Show content of 'context class'
 if not FLAG_SILENT_TRUE:
     print("Context class generated from context word (=token index): " + "\n" + str(context_class) + " -> " + str(type(context_class)) + "\n")
     
@@ -212,7 +235,7 @@ negative_sampling_candidates, true_expected_count_list, sampled_expected_count_l
     name="negative_sampling"  # name of this operation
 )
 
-# Showing in details the negatives sampling candidates, their key value (int) and their equivalent if tokens
+# Showing in details the negatives sampling candidates, their key value (int) and their equivalent in tokens
 if not FLAG_SILENT_TRUE:
     print("Get negative sampling candidates from the context class list composed of index objects:")
     personal_functions.printing_list_elements(negative_sampling_candidates)
@@ -250,6 +273,8 @@ tf.squeeze(
 )
 """
 squeezed_context_class = tf.squeeze(context_class, 1)
+
+# Show the changes from 'context_class' to 'squeeted_context_class' 
 if not FLAG_SILENT_TRUE:
     print("Created a new object class 'squeezed_context_class' from the 'context_class' one by reducing its dimensions to only one : ")
     print("Before : ", end='')
@@ -275,14 +300,18 @@ if not FLAG_SILENT_TRUE:
 # Label the first context word as `1` (positive) followed by `num_ns` `0`s (negative).
 # tf.constant : see above -> Creates a constant tensor from a tensor-like object.
 label = tf.constant([1] + [0]*num_of_negative_samples, dtype="int64")
+
+# Shwo the content of the 'label object'
 if not FLAG_SILENT_TRUE:
     print("Create a 'label' object containing a list of int - the first one is 1 (positive label) followed by 'num_of_negative_samples' " + str(num_of_negative_samples) + " times '0' (negative label) : ")
     personal_functions.print_variable_information(object=label, object_name="label")
     print() # Esthetic
 
 target = target_word
+
+# Summarize of important datas used above.
 if not FLAG_SILENT_TRUE:
-    print("Set the 'target' " + str(target) + " as per the 'target_word' " + str(target_word) + ".\n")
+    print("Set the 'target' " + str(target) + " as per the 'target_word' " + str(target_word) + ".\nReminder : here, first word has index = 1.\n")
     # Some usefull info
     print(f"sentence        : {sentence}")
     print(f"target_index    : {target}")
@@ -333,7 +362,6 @@ if not FLAG_SILENT_TRUE:
 
 # My remarks to be processed before leaving the script
 print("\n\n\nDEBUG AND REMARKS TO MYSELF WHILE DEVELOPPING")
-print("\t- What is 'AUTOTUNE' (line 57) and why set it to '-1' ?")
 print("##################################################")
 print("OK")
 print("##################################################")
