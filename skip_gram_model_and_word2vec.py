@@ -339,7 +339,9 @@ if not FLAG_SILENT_TRUE:
 
 # Compile all steps into one function
 
-# To be done
+sampling_table = tf.keras.preprocessing.sequence.make_sampling_table(size=10)
+
+print(sampling_table)
 
 
 
