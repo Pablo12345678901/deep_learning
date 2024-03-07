@@ -51,6 +51,15 @@ elif NUMBER_OF_PROVIDED_ARGUMENTS > MAXIMUM_ARGUMENT_NUMBER:
 # and vocabulary size (and seed = random seed).
 def generate_training_data(sequences, window_size, num_ns, vocab_size, seed):
 
+    if not FLAG_SILENT_TRUE:
+        print("Generate training data with those parameters :")
+        print("sequences : ", sequences)
+        print("window_size :", window_size)
+        print("num_ns :", num_ns)
+        print("vocab_size :", vocab_size)
+        print("seed :", seed)
+        print() # Esthetic
+        
     # Define the lists that the function will fill with elements of each training example.
     targets, contexts, labels = [], [], []
 
@@ -74,6 +83,8 @@ def generate_training_data(sequences, window_size, num_ns, vocab_size, seed):
         if not FLAG_SILENT_TRUE:
             print("Generate positive skip-gram pairs for the sequence (sentence) " , sequence)
 
+        print("DEBUG 86 WHY NO VALUE FOR POSITIVE SKIP GRAMS")
+            
         # Generate positive skip-gram pairs for the sequence
         # tf.keras.preprocessing.sequence.skipgrams : returns 'couples', 'labels' (here ignored because no negative samples): where couples are int pairs and labels are either 0 or 1. 
         positive_skip_grams, sequence_labels = tf.keras.preprocessing.sequence.skipgrams(
@@ -107,11 +118,16 @@ def generate_training_data(sequences, window_size, num_ns, vocab_size, seed):
           seed=seed,
           name="negative_sampling"
         )
-
-        # I AM HERE
         
         # Build context and label vectors (for one target word)
-        context = tf.concat([tf.squeeze(context_class,1), negative_sampling_candidates], 0)
+        # tf.concat(values, axis, name='concat')  : Concatenates tensors along one dimension.
+        #
+        # tf.squeeze(input, axis=None, name=None) : Removes dimensions of size 1 from the shape of a tensor.
+        context = tf.concat([tf.squeeze(context_class,1), negative_sampling_candidates],    0)
+
+        print("DEBUG WHY NO CONTEXT ?")
+        print(context)
+        # Create a label list with one '1' and 0's = [ 1 0 ... 0 ]
         label = tf.constant([1] + [0]*num_ns, dtype="int64")
       
         # Append each element from the training example to global lists.
@@ -120,7 +136,18 @@ def generate_training_data(sequences, window_size, num_ns, vocab_size, seed):
         labels.append(label)
 
     return targets, contexts, labels
-    
+
+# Lowercase all data as well as removing all punctuation
+def custom_standardization(input_data):
+    # Lowercase all data
+    lowercase = tf.strings.lower(input_data)
+    # tf.strings.regex_replace(input, pattern, rewrite, replace_global=True, name=None) : Replace elements of input matching regex pattern with rewrite.
+    # [%s] : to match any of the char within the string '%s'
+    #  re.escape(pattern) : Escape special characters in pattern.
+    # string.punctuation : String of ASCII characters which are considered punctuation characters in the C locale: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~.
+    # Here, replace all strings of punctuation by '' = removal
+    return tf.strings.regex_replace(lowercase, '[%s]' % re.escape(string.punctuation), '')
+
 ######### DESCRIPTION OF FILE ################
 
 if not FLAG_SILENT_TRUE:
@@ -128,26 +155,158 @@ if not FLAG_SILENT_TRUE:
     
 ############## MAIN CODE  ####################
 
+# Define some data : 
+# tf.data : an API that enables to build complex input pipelines from simple, reusable pieces.
+# tf.data.AUTOTUNE : use tensorflow capacity to compute the processing time at each step while processing the input in order to optimize the pipeline while using this output (providing a better CPU usage) - more fluent.
+# See : https://www.tensorflow.org/api_docs/python/tf/data#AUTOTUNE
+# See : https://stackoverflow.com/questions/56613155/tensorflow-tf-data-autotune
+AUTOTUNE = tf.data.AUTOTUNE # = -1
+batch_size = 1024
+vocab_size = 4 * batch_size # vocabulary size
+sequence_length = 10 # number of words in a sequence
+
+FILENAME = 'shakespeare.txt'
+DOWNLOAD_URL = 'https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt'
+
+# tf.keras.utils.get_file() : Downloads a file from a URL if it not already in the cache.
+file_data_in_cache = tf.keras.utils.get_file(FILENAME, DOWNLOAD_URL)
+
+# 
+with open(file_data_in_cache) as text_data_file:
+    # splitlines : split a text by lines with the ('\n')
+    lines = text_data_file.read().splitlines()
+
+    # Print the first X lines
+    if not FLAG_SILENT_TRUE:
+        NUMBER_OF_LINES_TO_PRINT = 20
+        print("First " + str(NUMBER_OF_LINES_TO_PRINT) + " lines of the text : ")
+        for i in range(0, NUMBER_OF_LINES_TO_PRINT):
+            print(str(i) + ":" + str(lines[i]))
+        print() # Esthetic
+
+# Get the dataset from all non-empty lines
+"""
+tf.data.TextLineDataset(
+    filenames,
+    compression_type=None,
+    buffer_size=None,
+    num_parallel_reads=None,
+    name=None
+) : Creates a Dataset comprising lines from one or more text files. Inherits From: Dataset
+"""
+# Dataset.filter(predicate, name=None) -> 'DatasetV2' : Filters this dataset according to predicate.
+# tf.cast(x, dtype, name=None) : cast a tensor to a new type.
+# So here, returns only the lines that are not empty. Because lenght(0) = 0 = False & lenght(not_0) = True
+text_ds = tf.data.TextLineDataset(file_data_in_cache).filter(lambda x: tf.cast(tf.strings.length(x), bool))
+
+# Printing details about the variable
+if not FLAG_SILENT_TRUE:
+    print("'text_ds' (text dataset) : ")
+    personal_functions.print_variable_information(text_ds, "text_ds")
+    print() # Esthetic
+
+# Use the `TextVectorization` layer to normalize, split, and map strings to
+# integers. Set the `output_sequence_length` length to pad all samples to the same length.
+# layers = tensorflow.keras.layers
+"""
+tf.keras.layers.TextVectorization(
+    max_tokens=None,
+    standardize='lower_and_strip_punctuation',
+    split='whitespace',
+    ngrams=None,
+    output_mode='int',
+    output_sequence_length=None,
+    pad_to_max_tokens=False,
+    vocabulary=None,
+    idf_weights=None,
+    sparse=False,
+    ragged=False,
+    encoding='utf-8',
+    **kwargs
+) : A preprocessing layer which maps text features to integer sequences. Inherits From: PreprocessingLayer, Layer, Module
+"""
+vectorize_layer = layers.TextVectorization(
+    standardize=custom_standardization, # use the custom function to lowerxcase as well as remove all punctuation chars. 
+    max_tokens=vocab_size,
+    output_mode='int', # convert words to int
+    output_sequence_length=sequence_length # size of a sequence to homogenize them
+)
+
+# Printing details about the variable
+if not FLAG_SILENT_TRUE:
+    print("'vectorize_layer'")
+    personal_functions.print_variable_information(vectorize_layer, "vectorize_layer")
+    print() # Esthetic
+
+# Fill the layer with vocabulary from the dataset (text_ds)
+# batch(batch_size, drop_remainder=False, num_parallel_calls=None, deterministic=None, name=None) -> 'DatasetV2' : Combines consecutive elements of this dataset into batches.
+vectorize_layer.adapt(text_ds.batch(batch_size))
+
+# Printing details about the variable
+if not FLAG_SILENT_TRUE:
+    print("'vectorize_layer' : After filling it with vocabulary")
+    personal_functions.print_variable_information(vectorize_layer, "vectorize_layer")
+    print() # Esthetic
+
+# Save the created vocabulary for reference.
+# TextVectorization.get_vocabulary(include_special_tokens=True) : Returns the current vocabulary tokens of the layer, sorted (descending) by their frequency = First vocabulary token is the most seen.
+inverse_vocab = vectorize_layer.get_vocabulary()
+if not FLAG_SILENT_TRUE:
+    # Reminder : '[UNK]' = The unknown_token is used when what remains of the token is not in the vocabulary, or if the token is too long.
+    NUMBER_OF_VOCABULARY_WORDS_TO_PRINT = 20 
+    print("First " + str(NUMBER_OF_VOCABULARY_WORDS_TO_PRINT) + " words in the vocabulary")
+    print(inverse_vocab[:NUMBER_OF_VOCABULARY_WORDS_TO_PRINT])
+    print() # Esthetic
+
+# Vectorize the data (generate one vector) in 'text_ds' by mapping it with the 'vectorize_layer'
+# Reminder : text_ds = tf.data.Dataset
+# From 'text_ds' -> Process by batch of batch_size
+# Then, prefetch (pre-analyse, pre-read) with AUTOTUNE (see below)
+# AUTOTUNE : If the value tf.data.AUTOTUNE is used, then the number of parallel calls is set dynamically based on available resources.
+# Then, map those words with the vectorize_layer
+# And unbatch : re-merge them. 
+text_vector_ds = text_ds.batch(batch_size).prefetch(AUTOTUNE).map(vectorize_layer).unbatch()
+
+# Generate a list of sequences (= vectors of same size) from the 'text_vector_ds'
+# as_numpy_iterator() : Returns an iterator which converts all elements of the dataset to numpy.
+sequences = list(text_vector_ds.as_numpy_iterator())
+
+# Showing the lenght of sequences as well as some of them
+if not FLAG_SILENT_TRUE:
+    print("The lenght of the 'sequences' object is : " + str(len(sequences)))
+    NUMBER_OF_SEQUENCES_TO_PRINT = 3
+    print("Example of the first " + str(NUMBER_OF_SEQUENCES_TO_PRINT) + " sequences content :")
+    for i in range(0, NUMBER_OF_SEQUENCES_TO_PRINT): 
+        print(f"Sequence {i} : {sequences[i]} equivalent to : {[inverse_vocab[j] for j in sequences[i]]}\n")
+    print() # Esthetic
+
+
+
+
+# I AM HERE
+
+
+
+
+
+"""
 # My test data while developing
 sequences = [[3, 5], [1, 7], [5, 6], [4, 5], [1, 6], [4, 2], [7, 1], [2, 1], [4, 3], [5, 3], [1, 3], [7, 6], [5, 4], [6, 1], [5, 1], [3, 2], [4, 1], [1, 5], [3, 1], [1, 2], [2, 4], [1, 4], [3, 4], [2, 3], [6, 5], [6, 7]]
 window_size = 2
 num_ns = 4 # number of negative samples
-vocab_size = 100
+vocab_size = 8
 seed = 42 # to adapt
 
-generate_training_data(sequences, window_size, num_ns, vocab_size, seed)
-
-
-
-
+#generate_training_data(sequences, window_size, num_ns, vocab_size, seed)
+"""
 
 ##############################################
 
 # My remarks to be processed before leaving the script
 print("\n\n\nDEBUG AND REMARKS TO MYSELF WHILE DEVELOPPING")
 print("##################################################")
-print("Finish to study/comment the function on line 111 : '# I AM HERE'")
-print("Then follow with the section 'Prepare training data for word2vec'")
+print("Continue from the section 'Generate training examples from sequences'")
+print("Re-check the function above ' generate_training_data' after writing the whole code to understand it.")
 print("##################################################")
 print("TO GO FURTHER")
 print("\t- If needed : see other detailed explanation of skip gram model here :" + "\n" + "\thttps://medium.com/@corymaklin/word2vec-skip-gram-904775613b4c")
